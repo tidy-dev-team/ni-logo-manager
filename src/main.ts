@@ -106,7 +106,8 @@ export default function () {
               : config.selectionBId!,
           backgroundColor: config.backgroundColor,
           colorOverride: null,
-          variantName: `Product=${config.productName}, Size=315x140-BG`
+          variantName: `Product=${config.productName}, Size=315x140-BG`,
+          padding: 8
         })
         variants.push(bgVariant)
 
@@ -120,7 +121,8 @@ export default function () {
               : config.selectionBId!,
           backgroundColor: null,
           colorOverride: config.lightModeBlack ? hexToRgb('#000000') : null,
-          variantName: `Product=${config.productName}, Size=300x100-Light-NoBg`
+          variantName: `Product=${config.productName}, Size=300x100-Light-NoBg`,
+          padding: 0
         })
         variants.push(lightVariant)
 
@@ -134,7 +136,8 @@ export default function () {
               : config.selectionBId!,
           backgroundColor: null,
           colorOverride: config.darkModeWhite ? hexToRgb('#FFFFFF') : null,
-          variantName: `Product=${config.productName}, Size=300x100-Dark-NoBg`
+          variantName: `Product=${config.productName}, Size=300x100-Dark-NoBg`,
+          padding: 0
         })
         variants.push(darkVariant)
 
@@ -148,7 +151,8 @@ export default function () {
               : config.selectionBId!,
           backgroundColor: null,
           colorOverride: null,
-          variantName: `Product=${config.productName}, Size=100x100-Favicon`
+          variantName: `Product=${config.productName}, Size=100x100-Favicon`,
+          padding: 20
         })
         variants.push(faviconVariant)
 
@@ -158,6 +162,13 @@ export default function () {
           figma.currentPage
         )
         componentSet.name = config.productName
+
+        // Apply auto-layout settings
+        componentSet.layoutMode = 'HORIZONTAL'
+        componentSet.primaryAxisSizingMode = 'AUTO'
+        componentSet.counterAxisSizingMode = 'AUTO'
+        componentSet.counterAxisAlignItems = 'CENTER'
+        componentSet.itemSpacing = 22
 
         // Position and zoom
         figma.viewport.scrollAndZoomIntoView([componentSet])
@@ -189,6 +200,7 @@ function createVariant(options: {
   backgroundColor: string | null
   colorOverride: RGB | null
   variantName: string
+  padding?: number
 }): ComponentNode {
   // Get source node
   const sourceNode = figma.getNodeById(options.sourceId)
@@ -214,7 +226,8 @@ function createVariant(options: {
   const clone = sourceNode.clone()
   
   // Scale to fit with padding
-  scaleToFit(clone, options.width, options.height, 16)
+  const padding = options.padding ?? 16
+  scaleToFit(clone, options.width, options.height, padding)
   
   // Center in parent
   centerInParent(clone, options.width, options.height)
