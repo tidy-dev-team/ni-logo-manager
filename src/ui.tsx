@@ -40,6 +40,7 @@ function Plugin() {
   const [previewB, setPreviewB] = useState<string | null>(null)
 
   // Logo configuration state
+  const defaultProductName = 'Logo component set'
   const [productName, setProductName] = useState<string>('')
   const [backgroundColor, setBackgroundColor] = useState<string>('#FFFFFF')
   const [bgVariantSource, setBgVariantSource] = useState<'A' | 'B'>('A')
@@ -100,7 +101,7 @@ function Plugin() {
   const handleCreateComponentSet = useCallback(
     function () {
       // Validation
-      if (!productName.trim()) {
+      if (!productName.trim() && !defaultProductName) {
         return // Main will show error notification
       }
 
@@ -110,7 +111,7 @@ function Plugin() {
 
       // Build config
       const config: LogoConfig = {
-        productName: productName.trim(),
+        productName: productName.trim() || defaultProductName,
         backgroundColor,
         bgVariantSource,
         lightVariantSource,

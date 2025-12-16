@@ -59,8 +59,7 @@ export default function () {
       try {
         // Validation
         if (!config.productName.trim()) {
-          figma.notify('Please enter a product name')
-          return
+          config.productName = 'Logo component set'
         }
 
         if (!config.selectionAId) {
