@@ -4,6 +4,7 @@ import { EventHandler } from '@create-figma-plugin/utilities'
 export interface SelectionInfo {
   id: string
   name: string
+  imageData: Uint8Array // PNG image data
 }
 
 // Configuration for creating the component set

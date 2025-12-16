@@ -34,6 +34,10 @@ function Plugin() {
   // Selection state
   const [selectionA, setSelectionA] = useState<SelectionInfo | null>(null)
   const [selectionB, setSelectionB] = useState<SelectionInfo | null>(null)
+  
+  // Preview image URLs
+  const [previewA, setPreviewA] = useState<string | null>(null)
+  const [previewB, setPreviewB] = useState<string | null>(null)
 
   // Logo configuration state
   const [productName, setProductName] = useState<string>('')
@@ -51,10 +55,24 @@ function Plugin() {
 
   // Listen for selection updates from main
   on<SelectionUpdateHandler>('SELECTION_UPDATE', function (slot, info) {
-    if (slot === 'A') {
-      setSelectionA(info)
-    } else {
-      setSelectionB(info)
+    if (info && info.imageData) {
+      // Convert Uint8Array to base64 data URL
+      let binary = ''
+      const bytes = new Uint8Array(info.imageData)
+      const len = bytes.byteLength
+      for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i])
+      }
+      const base64 = btoa(binary)
+      const dataUrl = `data:image/png;base64,${base64}`
+      
+      if (slot === 'A') {
+        setSelectionA(info)
+        setPreviewA(dataUrl)
+      } else {
+        setSelectionB(info)
+        setPreviewB(dataUrl)
+      }
     }
   })
 
@@ -65,6 +83,17 @@ function Plugin() {
 
   const handleGrabSelectionB = useCallback(function () {
     emit<GrabSelectionHandler>('GRAB_SELECTION', 'B')
+  }, [])
+
+  // Clear selection handlers
+  const handleClearSelectionA = useCallback(function () {
+    setSelectionA(null)
+    setPreviewA(null)
+  }, [])
+
+  const handleClearSelectionB = useCallback(function () {
+    setSelectionB(null)
+    setPreviewB(null)
   }, [])
 
   // Create component set handler
@@ -148,16 +177,38 @@ function Plugin() {
             <Bold>Selection A</Bold>
           </Text>
           <VerticalSpace space="small" />
-          <Columns space="small">
-            <div style={{ flex: 1 }}>
-              <Text>
-                <Muted>{selectionA ? selectionA.name : 'None selected'}</Muted>
-              </Text>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+              {previewA ? (
+                <img 
+                  src={previewA} 
+                  alt={selectionA?.name || 'Selection A'} 
+                  style={{ 
+                    maxWidth: '100px', 
+                    maxHeight: '60px', 
+                    objectFit: 'contain',
+                    border: '1px solid var(--figma-color-border)',
+                    borderRadius: '2px',
+                    padding: '4px',
+                    backgroundColor: 'var(--figma-color-bg)'
+                  }} 
+                />
+              ) : (
+                <Text>
+                  <Muted>None selected</Muted>
+                </Text>
+              )}
             </div>
-            <Button onClick={handleGrabSelectionA} secondary>
-              Grab Selection
-            </Button>
-          </Columns>
+            <div style={{ width: '120px' }}>
+              <Button
+                onClick={selectionA ? handleClearSelectionA : handleGrabSelectionA}
+                secondary
+                fullWidth
+              >
+                {selectionA ? 'Clear Selection' : 'Grab Selection'}
+              </Button>
+            </div>
+          </div>
           <VerticalSpace space="medium" />
 
           {/* Selection B */}
@@ -165,18 +216,40 @@ function Plugin() {
             <Bold>Selection B</Bold>
           </Text>
           <VerticalSpace space="small" />
-          <Columns space="small">
-            <div style={{ flex: 1 }}>
-              <Text>
-                <Muted>{selectionB ? selectionB.name : 'None selected'}</Muted>
-              </Text>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+              {previewB ? (
+                <img 
+                  src={previewB} 
+                  alt={selectionB?.name || 'Selection B'} 
+                  style={{ 
+                    maxWidth: '100px', 
+                    maxHeight: '60px', 
+                    objectFit: 'contain',
+                    border: '1px solid var(--figma-color-border)',
+                    borderRadius: '2px',
+                    padding: '4px',
+                    backgroundColor: 'var(--figma-color-bg)'
+                  }} 
+                />
+              ) : (
+                <Text>
+                  <Muted>None selected</Muted>
+                </Text>
+              )}
             </div>
-            <Button onClick={handleGrabSelectionB} secondary>
-              Grab Selection
-            </Button>
-          </Columns>
+            <div style={{ width: '120px' }}>
+              <Button
+                onClick={selectionB ? handleClearSelectionB : handleGrabSelectionB}
+                secondary
+                fullWidth
+              >
+                {selectionB ? 'Clear Selection' : 'Grab Selection'}
+              </Button>
+            </div>
+          </div>
           <VerticalSpace space="large" />
-
+ 
           {/* Product Name */}
           <Text>
             <Muted>Product Name</Muted>

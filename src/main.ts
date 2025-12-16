@@ -14,7 +14,7 @@ import {
 
 export default function () {
   // Handle grabbing selections
-  on<GrabSelectionHandler>('GRAB_SELECTION', function (slot: 'A' | 'B') {
+  on<GrabSelectionHandler>('GRAB_SELECTION', async function (slot: 'A' | 'B') {
     const selection = figma.currentPage.selection
 
     if (selection.length === 0) {
@@ -31,10 +31,23 @@ export default function () {
       node = selection[0]
     }
 
-    // Send info back to UI (includes the node ID)
+    // Export node as PNG for preview
+    let imageData: Uint8Array
+    try {
+      imageData = await node.exportAsync({
+        format: 'PNG',
+        constraint: { type: 'SCALE', value: 2 } // 2x scale for better quality
+      })
+    } catch (error) {
+      figma.notify('Failed to generate preview image')
+      return
+    }
+
+    // Send info back to UI (includes the image data)
     const info: SelectionInfo = {
       id: node.id,
-      name: node.name
+      name: node.name,
+      imageData
     }
     emit<SelectionUpdateHandler>('SELECTION_UPDATE', slot, info)
   })
