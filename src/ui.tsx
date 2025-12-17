@@ -157,8 +157,8 @@ function Plugin() {
   ]
 
   const tabsOptions: Array<TabsOption> = [
-    { value: 'select-vectors', children: 'Select Vectors' },
-    { value: 'create-logotype', children: 'Create Logotype' }
+    { value: 'select-vectors', children: 'Select vectors' },
+    { value: 'create-logotype', children: 'Create logotype' }
   ]
 
   return (
@@ -173,7 +173,6 @@ function Plugin() {
 
       {activeTab === 'select-vectors' && (
         <div>
-          {/* Selection A */}
           <Text>
             <Bold>Selection A</Bold>
           </Text>
@@ -251,14 +250,10 @@ function Plugin() {
           </div>
           <VerticalSpace space="large" />
  
-          {/* Product Name */}
-          <Text>
-            <Muted>Product Name</Muted>
-          </Text>
-          <VerticalSpace space="small" />
           <Textbox
             onValueInput={setProductName}
             value={productName}
+            placeholder="Logo component set"
           />
           <VerticalSpace space="large" />
 
