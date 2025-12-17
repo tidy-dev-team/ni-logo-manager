@@ -41,3 +41,17 @@ export interface CloseHandler extends EventHandler {
   name: 'CLOSE'
   handler: () => void
 }
+
+// Configuration for creating text-based logo component set
+export interface TextLogoConfig {
+  productName: string
+  logoText: string
+  faviconText: string
+  backgroundColor: string
+  textColor: string
+}
+
+export interface CreateTextLogoHandler extends EventHandler {
+  name: 'CREATE_TEXT_LOGO'
+  handler: (config: TextLogoConfig) => void
+}

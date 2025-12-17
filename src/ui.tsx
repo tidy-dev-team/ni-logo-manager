@@ -21,10 +21,12 @@ import { useCallback, useState } from 'preact/hooks'
 
 import {
   CreateComponentSetHandler,
+  CreateTextLogoHandler,
   GrabSelectionHandler,
   LogoConfig,
   SelectionInfo,
-  SelectionUpdateHandler
+  SelectionUpdateHandler,
+  TextLogoConfig
 } from './types'
 
 function Plugin() {
@@ -50,9 +52,12 @@ function Plugin() {
   const [lightModeBlack, setLightModeBlack] = useState<boolean>(false)
   const [darkModeWhite, setDarkModeWhite] = useState<boolean>(false)
 
-  // Create Logotype tab state (placeholder)
-  const [input1, setInput1] = useState<string>('')
-  const [input2, setInput2] = useState<string>('')
+  // Create Logotype tab state
+  const [textProductName, setTextProductName] = useState<string>('')
+  const [logoText, setLogoText] = useState<string>('')
+  const [faviconText, setFaviconText] = useState<string>('')
+  const [textBackgroundColor, setTextBackgroundColor] = useState<string>('#EEEEEE')
+  const [textTextColor, setTextTextColor] = useState<string>('#000000')
 
   // Listen for selection updates from main
   on<SelectionUpdateHandler>('SELECTION_UPDATE', function (slot, info) {
@@ -139,13 +144,19 @@ function Plugin() {
     ]
   )
 
-  // Create Logotype tab handler (placeholder)
-  const handleLogToConsole = useCallback(
+  // Create Text Logo handler
+  const handleCreateTextLogo = useCallback(
     function () {
-      console.log('Input 1:', input1)
-      console.log('Input 2:', input2)
+      const config: TextLogoConfig = {
+        productName: textProductName.trim() || 'Logo component set',
+        logoText: logoText.trim() || 'Text logo',
+        faviconText: faviconText.trim() || 'T',
+        backgroundColor: textBackgroundColor,
+        textColor: textTextColor
+      }
+      emit<CreateTextLogoHandler>('CREATE_TEXT_LOGO', config)
     },
-    [input1, input2]
+    [textProductName, logoText, faviconText, textBackgroundColor, textTextColor]
   )
 
 
@@ -359,21 +370,62 @@ function Plugin() {
       {activeTab === 'create-logotype' && (
         <div>
           <Text>
-            <Muted>Input 1</Muted>
+            <Muted>Component set name</Muted>
           </Text>
           <VerticalSpace space="small" />
-          <Textbox onValueInput={setInput1} value={input1} />
+          <Textbox
+            onValueInput={setTextProductName}
+            value={textProductName}
+            placeholder="Logo component set"
+          />
+          <VerticalSpace space="large" />
+
+          <Text>
+            <Muted>Logo text</Muted>
+          </Text>
+          <VerticalSpace space="small" />
+          <Textbox
+            onValueInput={setLogoText}
+            value={logoText}
+            placeholder="Text logo"
+          />
           <VerticalSpace space="medium" />
 
           <Text>
-            <Muted>Input 2</Muted>
+            <Muted>Favicon text</Muted>
           </Text>
           <VerticalSpace space="small" />
-          <Textbox onValueInput={setInput2} value={input2} />
+          <Textbox
+            onValueInput={setFaviconText}
+            value={faviconText}
+            placeholder="T"
+          />
           <VerticalSpace space="large" />
 
-          <Button fullWidth onClick={handleLogToConsole}>
-            Log to Console
+          <Text>
+            <Muted>Text color</Muted>
+          </Text>
+          <VerticalSpace space="small" />
+          <TextboxColor
+            hexColor={textTextColor}
+            onHexColorValueInput={setTextTextColor}
+            opacity="100"
+          />
+          <VerticalSpace space="medium" />
+
+          <Text>
+            <Muted>Background color</Muted>
+          </Text>
+          <VerticalSpace space="small" />
+          <TextboxColor
+            hexColor={textBackgroundColor}
+            onHexColorValueInput={setTextBackgroundColor}
+            opacity="100"
+          />
+          <VerticalSpace space="large" />
+
+          <Button fullWidth onClick={handleCreateTextLogo}>
+            Create component set
           </Button>
           <VerticalSpace space="small" />
         </div>

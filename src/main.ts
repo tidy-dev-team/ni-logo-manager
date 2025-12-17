@@ -3,10 +3,12 @@ import { emit, on, once, showUI } from '@create-figma-plugin/utilities'
 import {
   CloseHandler,
   CreateComponentSetHandler,
+  CreateTextLogoHandler,
   GrabSelectionHandler,
   LogoConfig,
   SelectionInfo,
-  SelectionUpdateHandler
+  SelectionUpdateHandler,
+  TextLogoConfig
 } from './types'
 
 // Note: Selection IDs are now passed directly in config from UI
@@ -161,6 +163,7 @@ export default function () {
           figma.currentPage
         )
         componentSet.name = config.productName
+        componentSet.cornerRadius = 0
 
         // Apply auto-layout settings
         componentSet.layoutMode = 'HORIZONTAL'
@@ -172,6 +175,92 @@ export default function () {
         // Position and zoom
         figma.viewport.scrollAndZoomIntoView([componentSet])
         figma.notify('Component set created!')
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error'
+        figma.notify(`Error: ${message}`)
+        console.error(error)
+      }
+    }
+  )
+
+  // Handle creating text-based logo component set
+  on<CreateTextLogoHandler>(
+    'CREATE_TEXT_LOGO',
+    async function (config: TextLogoConfig) {
+      try {
+        // Load Inter Bold font
+        await figma.loadFontAsync({ family: 'Inter', style: 'Bold' })
+
+        // Create the 4 variants
+        const variants: ComponentNode[] = []
+
+        // 1. 315x140 Primary Logo with background
+        const primaryVariant = createTextVariant({
+          width: 315,
+          height: 140,
+          text: config.logoText,
+          backgroundColor: config.backgroundColor,
+          textColor: hexToRgb(config.textColor),
+          variantName: `Product=${config.productName}, Size=315x140-BG`,
+          padding: 8
+        })
+        variants.push(primaryVariant)
+
+        // 2. 300x100 Light Mode (no bg, black text)
+        const lightVariant = createTextVariant({
+          width: 300,
+          height: 100,
+          text: config.logoText,
+          backgroundColor: null,
+          textColor: hexToRgb(config.textColor),
+          variantName: `Product=${config.productName}, Size=300x100-Light-NoBg`,
+          padding: 0
+        })
+        variants.push(lightVariant)
+
+        // 3. 300x100 Dark Mode (no bg, white text)
+        const darkVariant = createTextVariant({
+          width: 300,
+          height: 100,
+          text: config.logoText,
+          backgroundColor: null,
+          textColor: hexToRgb('#FFFFFF'),
+          variantName: `Product=${config.productName}, Size=300x100-Dark-NoBg`,
+          padding: 0
+        })
+        variants.push(darkVariant)
+
+        // 4. 100x100 Favicon with background
+        const faviconVariant = createTextVariant({
+          width: 100,
+          height: 100,
+          text: config.faviconText,
+          backgroundColor: config.backgroundColor,
+          backgroundCornerRadius: 12,
+          textColor: hexToRgb(config.textColor),
+          variantName: `Product=${config.productName}, Size=100x100-Favicon`,
+          padding: 20
+        })
+        variants.push(faviconVariant)
+
+        // Combine into component set
+        const componentSet = figma.combineAsVariants(
+          variants,
+          figma.currentPage
+        )
+        componentSet.name = config.productName
+        componentSet.cornerRadius = 0
+
+        // Apply auto-layout settings
+        componentSet.layoutMode = 'HORIZONTAL'
+        componentSet.primaryAxisSizingMode = 'AUTO'
+        componentSet.counterAxisSizingMode = 'AUTO'
+        componentSet.counterAxisAlignItems = 'CENTER'
+        componentSet.itemSpacing = 22
+
+        // Position and zoom
+        figma.viewport.scrollAndZoomIntoView([componentSet])
+        figma.notify('Text logo component set created!')
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error'
         figma.notify(`Error: ${message}`)
@@ -211,6 +300,7 @@ function createVariant(options: {
   const component = figma.createComponent()
   component.resize(options.width, options.height)
   component.name = options.variantName
+  component.cornerRadius = 0
 
   // Add background if specified
   if (options.backgroundColor) {
@@ -305,4 +395,66 @@ function applyColorToAllFills(node: BaseNode, color: RGB): void {
       applyColorToAllFills(child, color)
     }
   }
+}
+
+// Helper: Create a text-based variant component
+function createTextVariant(options: {
+  width: number
+  height: number
+  text: string
+  backgroundColor: string | null
+  backgroundCornerRadius?: number
+  textColor: RGB
+  variantName: string
+  padding: number
+}): ComponentNode {
+  // Create component
+  const component = figma.createComponent()
+  component.resize(options.width, options.height)
+  component.name = options.variantName
+  component.cornerRadius = 0
+
+  // Add background if specified
+  if (options.backgroundColor) {
+    const bg = figma.createRectangle()
+    bg.resize(options.width, options.height)
+    bg.fills = [{ type: 'SOLID', color: hexToRgb(options.backgroundColor) }]
+    if (typeof options.backgroundCornerRadius === 'number') {
+      bg.cornerRadius = options.backgroundCornerRadius
+    }
+    bg.name = 'Background'
+    component.appendChild(bg)
+  }
+
+  // Create text node
+  const textNode = figma.createText()
+  textNode.fontName = { family: 'Inter', style: 'Bold' }
+  textNode.characters = options.text
+  textNode.fills = [{ type: 'SOLID', color: options.textColor }]
+  textNode.name = 'Logo Text'
+
+  // Scale text to fit using contain principle
+  const availableWidth = options.width - options.padding * 2
+  const availableHeight = options.height - options.padding * 2
+
+  // Start with a large font size and scale down to fit
+  const initialFontSize = 200
+  textNode.fontSize = initialFontSize
+
+  // Calculate scale factor based on text bounds
+  const scaleX = availableWidth / textNode.width
+  const scaleY = availableHeight / textNode.height
+  const scale = Math.min(scaleX, scaleY)
+
+  // Apply the calculated font size
+  const finalFontSize = Math.floor(initialFontSize * scale)
+  textNode.fontSize = finalFontSize
+
+  // Center text in component
+  textNode.x = (options.width - textNode.width) / 2
+  textNode.y = (options.height - textNode.height) / 2
+
+  component.appendChild(textNode)
+
+  return component
 }
