@@ -170,8 +170,8 @@ function Plugin() {
   ];
 
   const tabsOptions: Array<TabsOption> = [
-    { value: "Select Vectors", children: "Select Vectors" },
-    { value: "Create Logotype", children: "Create Logotype" },
+    { value: "Select Vectors", children: <h2>Select Vectors</h2> },
+    { value: "Create Logotype", children: <h2>Create Logotype</h2> },
   ];
 
   return (
@@ -281,7 +281,7 @@ function Plugin() {
           <VerticalSpace space="medium" />
 
           {/* 315x140 with Background */}
-          <Text>315×140 with Background</Text>
+          <Text>315140 with Background</Text>
           <VerticalSpace space="small" />
           <Text>
             <Muted>Source</Muted>
@@ -308,7 +308,7 @@ function Plugin() {
           <VerticalSpace space="medium" />
 
           {/* 300x100 Light Mode */}
-          <Text>300×100 Light Mode (no background)</Text>
+          <Text>300x100 Light Mode (no background)</Text>
           <VerticalSpace space="small" />
           <Text>
             <Muted>Source</Muted>
@@ -329,7 +329,7 @@ function Plugin() {
           <VerticalSpace space="medium" />
 
           {/* 300x100 Dark Mode */}
-          <Text>300×100 Dark Mode (no background)</Text>
+          <Text>300x100 Dark Mode (no background)</Text>
           <VerticalSpace space="small" />
           <Text>
             <Muted>Source</Muted>
@@ -350,7 +350,7 @@ function Plugin() {
           <VerticalSpace space="medium" />
 
           {/* 100x100 Favicon */}
-          <Text>100×100 Favicon</Text>
+          <Text>100x100 Favicon</Text>
           <VerticalSpace space="small" />
           <Text>
             <Muted>Source</Muted>
