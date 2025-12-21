@@ -58,14 +58,18 @@ function Plugin() {
   const [faviconBackgroundShape, setFaviconBackgroundShape] = useState<
     "square" | "circle"
   >("square");
-  const [bgVariantSource, setBgVariantSource] =
-    useState<"A" | "B" | "C" | "D">("A");
-  const [lightVariantSource, setLightVariantSource] =
-    useState<"A" | "B" | "C" | "D">("A");
-  const [darkVariantSource, setDarkVariantSource] =
-    useState<"A" | "B" | "C" | "D">("A");
-  const [faviconVariantSource, setFaviconVariantSource] =
-    useState<"A" | "B" | "C" | "D">("B");
+  const [bgVariantSource, setBgVariantSource] = useState<"A" | "B" | "C" | "D">(
+    "A"
+  );
+  const [lightVariantSource, setLightVariantSource] = useState<
+    "A" | "B" | "C" | "D"
+  >("A");
+  const [darkVariantSource, setDarkVariantSource] = useState<
+    "A" | "B" | "C" | "D"
+  >("A");
+  const [faviconVariantSource, setFaviconVariantSource] = useState<
+    "A" | "B" | "C" | "D"
+  >("B");
   const [lightModeBlack, setLightModeBlack] = useState<boolean>(false);
   const [darkModeWhite, setDarkModeWhite] = useState<boolean>(false);
 
@@ -326,10 +330,10 @@ function Plugin() {
                           src={preview || undefined}
                           alt={selection?.name || row.label}
                           style={{
-                            width: "120px",
+                            width: "138px",
                             height: "60px",
                             objectFit: "contain",
-                            border: "1px solid var(--figma-color-border)",
+                            border: "1px solid #e6e6e6",
                             padding: "4px",
                             borderRadius: "6px",
                             backgroundColor: "var(--figma-color-bg)",
@@ -338,7 +342,7 @@ function Plugin() {
                       ) : (
                         <Text
                           style={{
-                            width: "120px",
+                            width: "138px",
                             height: "60px",
                             display: "flex",
                             justifyContent: "center",
@@ -346,14 +350,15 @@ function Plugin() {
                             textAlign: "center",
                             borderRadius: "6px",
                             transform: "none",
-                            border: "1px solid var(--figma-color-border)",
+                            backgroundColor: "#f7f7f7ff",
+                            border: "1px solid #f1f1f1ff",
                           }}
                         >
                           <Muted>None selected</Muted>
                         </Text>
                       )}
                     </div>
-                    <div style={{ width: "120px" }}>
+                    <div style={{ width: "138px" }}>
                       <Button
                         onClick={selection ? row.handleClear : row.handleGrab}
                         secondary
@@ -481,18 +486,29 @@ function Plugin() {
             <Text>Favicon has background</Text>
           </Checkbox>
           <VerticalSpace space="small" />
-          <Text>
-            <Muted>Background shape</Muted>
-          </Text>
-          <VerticalSpace space="extraSmall" />
-          <SegmentedControl
-            disabled={!faviconHasBackground}
-            options={faviconShapeOptions}
-            value={faviconBackgroundShape}
-            onValueChange={(value) =>
-              setFaviconBackgroundShape(value as "square" | "circle")
-            }
-          />
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Text
+              style={{
+                flexGrow: "1",
+              }}
+            >
+              <Muted>Background shape</Muted>
+            </Text>
+            <SegmentedControl
+              disabled={!faviconHasBackground}
+              options={faviconShapeOptions}
+              value={faviconBackgroundShape}
+              onValueChange={(value) =>
+                setFaviconBackgroundShape(value as "square" | "circle")
+              }
+            />
+          </div>
           <VerticalSpace space="large" />
 
           <Button fullWidth onClick={handleCreateComponentSet}>

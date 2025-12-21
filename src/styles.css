@@ -21,3 +21,8 @@ h2 {
 button {
   cursor: pointer !important;
 }
+
+div[class*="_segmentedControl_"] {
+  width: fit-content;
+  margin-bottom: 0 !important;
+}
