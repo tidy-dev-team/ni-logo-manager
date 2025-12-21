@@ -353,8 +353,8 @@ function createVariant(options: {
   // Remove hidden default fills (Figma adds #FFFFFF by default)
   removeHiddenFills(clone);
 
-    // Debug: confirm constraints and fills applied
-    logNodeState("bg-variant-clone", clone);
+  // Debug: confirm constraints and fills applied
+  logNodeState("bg-variant-clone", clone);
 
   // Append to component (type assertion since we know it's a scene node)
   if ("type" in clone && clone.type !== "PAGE") {
@@ -553,7 +553,10 @@ function removeHiddenFills(node: BaseNode): void {
 // Helper: Debug constraints and fills
 function logNodeState(label: string, node: BaseNode): void {
   if ("constraints" in node) {
-    console.log(`[${label}] constraints`, (node as ConstraintMixin).constraints);
+    console.log(
+      `[${label}] constraints`,
+      (node as ConstraintMixin).constraints
+    );
   }
   if ("constrainProportions" in node) {
     const maybeConstrain = (node as any).constrainProportions;
