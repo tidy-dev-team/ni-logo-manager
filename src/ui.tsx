@@ -50,6 +50,7 @@ function Plugin() {
   const defaultProductName = "Logo component set";
   const [productName, setProductName] = useState<string>("");
   const [backgroundColor, setBackgroundColor] = useState<string>("#FFFFFF");
+  const [backgroundOpacity, setBackgroundOpacity] = useState<number>(1);
   const [bgVariantSource, setBgVariantSource] =
     useState<"A" | "B" | "C" | "D">("A");
   const [lightVariantSource, setLightVariantSource] =
@@ -67,6 +68,7 @@ function Plugin() {
   const [faviconText, setFaviconText] = useState<string>("");
   const [textBackgroundColor, setTextBackgroundColor] =
     useState<string>("#EEEEEE");
+  const [textBackgroundOpacity, setTextBackgroundOpacity] = useState<number>(1);
   const [textTextColor, setTextTextColor] = useState<string>("#000000");
 
   // Listen for selection updates from main
@@ -149,6 +151,7 @@ function Plugin() {
       const config: LogoConfig = {
         productName: productName.trim() || defaultProductName,
         backgroundColor,
+        backgroundOpacity,
         bgVariantSource,
         lightVariantSource,
         darkVariantSource,
@@ -166,6 +169,7 @@ function Plugin() {
     [
       productName,
       backgroundColor,
+      backgroundOpacity,
       bgVariantSource,
       lightVariantSource,
       darkVariantSource,
@@ -187,11 +191,19 @@ function Plugin() {
         logoText: logoText.trim() || "Text logo",
         faviconText: faviconText.trim() || "T",
         backgroundColor: textBackgroundColor,
+        backgroundOpacity: textBackgroundOpacity,
         textColor: textTextColor,
       };
       emit<CreateTextLogoHandler>("CREATE_TEXT_LOGO", config);
     },
-    [textProductName, logoText, faviconText, textBackgroundColor, textTextColor]
+    [
+      textProductName,
+      logoText,
+      faviconText,
+      textBackgroundColor,
+      textBackgroundOpacity,
+      textTextColor,
+    ]
   );
 
   const sourceOptions: Array<DropdownOption> = [
@@ -339,9 +351,14 @@ function Plugin() {
           </Text>
           <VerticalSpace space="extraSmall" />
           <TextboxColor
-            onHexColorValueInput={setBackgroundColor}
             hexColor={backgroundColor}
-            opacity="100"
+            onHexColorValueInput={setBackgroundColor}
+            opacity={String(Math.round(backgroundOpacity * 100))}
+            onOpacityNumericValueInput={(value) => {
+              if (typeof value === "number") {
+                setBackgroundOpacity(value);
+              }
+            }}
           />
           <VerticalSpace space="medium" />
 
@@ -458,6 +475,7 @@ function Plugin() {
             onHexColorValueInput={setTextTextColor}
             opacity="100"
           />
+
           <VerticalSpace space="medium" />
 
           <Text>
@@ -467,7 +485,12 @@ function Plugin() {
           <TextboxColor
             hexColor={textBackgroundColor}
             onHexColorValueInput={setTextBackgroundColor}
-            opacity="100"
+            opacity={String(Math.round(textBackgroundOpacity * 100))}
+            onOpacityNumericValueInput={(value) => {
+              if (typeof value === "number") {
+                setTextBackgroundOpacity(value);
+              }
+            }}
           />
           <VerticalSpace space="large" />
 

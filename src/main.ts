@@ -96,6 +96,7 @@ export default function () {
           height: 140,
           sourceId: resolveSelectionId(config.bgVariantSource, config)!,
           backgroundColor: config.backgroundColor,
+          backgroundOpacity: config.backgroundOpacity,
           colorOverride: null,
           variantName: `Product=${config.productName}, Size=315x140-BG`,
           padding: 8,
@@ -182,6 +183,7 @@ export default function () {
           height: 140,
           text: config.logoText,
           backgroundColor: config.backgroundColor,
+          backgroundOpacity: config.backgroundOpacity,
           textColor: hexToRgb(config.textColor),
           variantName: `Product=${config.productName}, Size=315x140-BG`,
           padding: 8,
@@ -218,6 +220,7 @@ export default function () {
           height: 100,
           text: config.faviconText,
           backgroundColor: config.backgroundColor,
+          backgroundOpacity: config.backgroundOpacity,
           backgroundCornerRadius: 12,
           textColor: hexToRgb(config.textColor),
           variantName: `Product=${config.productName}, Size=100x100-Favicon`,
@@ -291,12 +294,20 @@ function resolveSelectionId(
   return null;
 }
 
+function clampOpacity(opacity: unknown): number {
+  if (typeof opacity !== "number" || Number.isNaN(opacity)) {
+    return 1;
+  }
+  return Math.max(0, Math.min(1, opacity));
+}
+
 // Helper: Create a single variant component
 function createVariant(options: {
   width: number;
   height: number;
   sourceId: string;
   backgroundColor: string | null;
+  backgroundOpacity?: number; // 0..1
   colorOverride: RGB | null;
   variantName: string;
   padding?: number;
@@ -323,7 +334,13 @@ function createVariant(options: {
   if (options.backgroundColor) {
     const bg = figma.createRectangle();
     bg.resize(options.width, options.height);
-    bg.fills = [{ type: "SOLID", color: hexToRgb(options.backgroundColor) }];
+    bg.fills = [
+      {
+        type: "SOLID",
+        color: hexToRgb(options.backgroundColor),
+        opacity: clampOpacity(options.backgroundOpacity),
+      },
+    ];
     bg.name = "Background";
     // Set constraints to scale for background
     bg.constraints = { horizontal: "SCALE", vertical: "SCALE" };
@@ -439,6 +456,7 @@ function createTextVariant(options: {
   height: number;
   text: string;
   backgroundColor: string | null;
+  backgroundOpacity?: number; // 0..1
   backgroundCornerRadius?: number;
   textColor: RGB;
   variantName: string;
@@ -460,7 +478,13 @@ function createTextVariant(options: {
   if (options.backgroundColor) {
     const bg = figma.createRectangle();
     bg.resize(options.width, options.height);
-    bg.fills = [{ type: "SOLID", color: hexToRgb(options.backgroundColor) }];
+    bg.fills = [
+      {
+        type: "SOLID",
+        color: hexToRgb(options.backgroundColor),
+        opacity: clampOpacity(options.backgroundOpacity),
+      },
+    ];
     if (typeof options.backgroundCornerRadius === "number") {
       bg.cornerRadius = options.backgroundCornerRadius;
     }

@@ -11,6 +11,7 @@ export interface SelectionInfo {
 export interface LogoConfig {
   productName: string
   backgroundColor: string
+  backgroundOpacity: number // 0..1
   bgVariantSource: 'A' | 'B' | 'C' | 'D'
   lightVariantSource: 'A' | 'B' | 'C' | 'D'
   darkVariantSource: 'A' | 'B' | 'C' | 'D'
@@ -50,6 +51,7 @@ export interface TextLogoConfig {
   logoText: string
   faviconText: string
   backgroundColor: string
+  backgroundOpacity: number // 0..1
   textColor: string
 }
 
