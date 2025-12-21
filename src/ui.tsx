@@ -36,19 +36,23 @@ function Plugin() {
   // Selection state
   const [selectionA, setSelectionA] = useState<SelectionInfo | null>(null)
   const [selectionB, setSelectionB] = useState<SelectionInfo | null>(null)
+  const [selectionC, setSelectionC] = useState<SelectionInfo | null>(null)
+  const [selectionD, setSelectionD] = useState<SelectionInfo | null>(null)
   
   // Preview image URLs
   const [previewA, setPreviewA] = useState<string | null>(null)
   const [previewB, setPreviewB] = useState<string | null>(null)
+  const [previewC, setPreviewC] = useState<string | null>(null)
+  const [previewD, setPreviewD] = useState<string | null>(null)
 
   // Logo configuration state
   const defaultProductName = 'Logo component set'
   const [productName, setProductName] = useState<string>('')
   const [backgroundColor, setBackgroundColor] = useState<string>('#FFFFFF')
-  const [bgVariantSource, setBgVariantSource] = useState<'A' | 'B'>('A')
-  const [lightVariantSource, setLightVariantSource] = useState<'A' | 'B'>('A')
-  const [darkVariantSource, setDarkVariantSource] = useState<'A' | 'B'>('A')
-  const [faviconVariantSource, setFaviconVariantSource] = useState<'A' | 'B'>('B')
+  const [bgVariantSource, setBgVariantSource] = useState<'A' | 'B' | 'C' | 'D'>('A')
+  const [lightVariantSource, setLightVariantSource] = useState<'A' | 'B' | 'C' | 'D'>('A')
+  const [darkVariantSource, setDarkVariantSource] = useState<'A' | 'B' | 'C' | 'D'>('A')
+  const [faviconVariantSource, setFaviconVariantSource] = useState<'A' | 'B' | 'C' | 'D'>('B')
   const [lightModeBlack, setLightModeBlack] = useState<boolean>(false)
   const [darkModeWhite, setDarkModeWhite] = useState<boolean>(false)
 
@@ -75,9 +79,15 @@ function Plugin() {
       if (slot === 'A') {
         setSelectionA(info)
         setPreviewA(dataUrl)
-      } else {
+      } else if (slot === 'B') {
         setSelectionB(info)
         setPreviewB(dataUrl)
+      } else if (slot === 'C') {
+        setSelectionC(info)
+        setPreviewC(dataUrl)
+      } else if (slot === 'D') {
+        setSelectionD(info)
+        setPreviewD(dataUrl)
       }
     }
   })
@@ -91,6 +101,14 @@ function Plugin() {
     emit<GrabSelectionHandler>('GRAB_SELECTION', 'B')
   }, [])
 
+  const handleGrabSelectionC = useCallback(function () {
+    emit<GrabSelectionHandler>('GRAB_SELECTION', 'C')
+  }, [])
+
+  const handleGrabSelectionD = useCallback(function () {
+    emit<GrabSelectionHandler>('GRAB_SELECTION', 'D')
+  }, [])
+
   // Clear selection handlers
   const handleClearSelectionA = useCallback(function () {
     setSelectionA(null)
@@ -102,6 +120,16 @@ function Plugin() {
     setPreviewB(null)
   }, [])
 
+  const handleClearSelectionC = useCallback(function () {
+    setSelectionC(null)
+    setPreviewC(null)
+  }, [])
+
+  const handleClearSelectionD = useCallback(function () {
+    setSelectionD(null)
+    setPreviewD(null)
+  }, [])
+
   // Create component set handler
   const handleCreateComponentSet = useCallback(
     function () {
@@ -110,7 +138,7 @@ function Plugin() {
         return // Main will show error notification
       }
 
-      if (!selectionA) {
+      if (!selectionA && !selectionB && !selectionC && !selectionD) {
         return // Main will show error notification
       }
 
@@ -124,8 +152,10 @@ function Plugin() {
         faviconVariantSource,
         lightModeBlack,
         darkModeWhite,
-        selectionAId: selectionA.id,
-        selectionBId: selectionB?.id || null
+        selectionAId: selectionA?.id || null,
+        selectionBId: selectionB?.id || null,
+        selectionCId: selectionC?.id || null,
+        selectionDId: selectionD?.id || null
       }
 
       emit<CreateComponentSetHandler>('CREATE_COMPONENT_SET', config)
@@ -140,9 +170,12 @@ function Plugin() {
       lightModeBlack,
       darkModeWhite,
       selectionA,
-      selectionB
+      selectionB,
+      selectionC,
+      selectionD
     ]
   )
+
 
   // Create Text Logo handler
   const handleCreateTextLogo = useCallback(
@@ -164,12 +197,53 @@ function Plugin() {
   // Dropdown options for variant sources
   const sourceOptions: Array<DropdownOption> = [
     { value: 'A', text: 'Selection A' },
-    { value: 'B', text: 'Selection B' }
+    { value: 'B', text: 'Selection B' },
+    { value: 'C', text: 'Selection C' },
+    { value: 'D', text: 'Selection D' }
   ]
+
+  const hasAnyVectorSelection = Boolean(
+    selectionA || selectionB || selectionC || selectionD
+  )
 
   const tabsOptions: Array<TabsOption> = [
     { value: 'select-vectors', children: 'Select vectors' },
     { value: 'create-logotype', children: 'Create logotype' }
+  ]
+
+  const selectionRows = [
+    {
+      key: 'A',
+      label: 'Selection A',
+      selection: selectionA,
+      preview: previewA,
+      handleGrab: handleGrabSelectionA,
+      handleClear: handleClearSelectionA
+    },
+    {
+      key: 'B',
+      label: 'Selection B',
+      selection: selectionB,
+      preview: previewB,
+      handleGrab: handleGrabSelectionB,
+      handleClear: handleClearSelectionB
+    },
+    {
+      key: 'C',
+      label: 'Selection C',
+      selection: selectionC,
+      preview: previewC,
+      handleGrab: handleGrabSelectionC,
+      handleClear: handleClearSelectionC
+    },
+    {
+      key: 'D',
+      label: 'Selection D',
+      selection: selectionD,
+      preview: previewD,
+      handleGrab: handleGrabSelectionD,
+      handleClear: handleClearSelectionD
+    }
   ]
 
   return (
@@ -184,81 +258,52 @@ function Plugin() {
 
       {activeTab === 'select-vectors' && (
         <div>
-          <Text>
-            <Bold>Selection A</Bold>
-          </Text>
-          <VerticalSpace space="small" />
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-              {previewA ? (
-                <img 
-                  src={previewA} 
-                  alt={selectionA?.name || 'Selection A'} 
-                  style={{ 
-                    maxWidth: '100px', 
-                    maxHeight: '60px', 
-                    objectFit: 'contain',
-                    border: '1px solid var(--figma-color-border)',
-                    borderRadius: '2px',
-                    padding: '4px',
-                    backgroundColor: 'var(--figma-color-bg)'
-                  }} 
-                />
-              ) : (
+          {selectionRows.map((row) => {
+            const preview = row.preview
+            const selection = row.selection
+            return (
+              <div key={row.key}>
                 <Text>
-                  <Muted>None selected</Muted>
+                  <Bold>{row.label}</Bold>
                 </Text>
-              )}
-            </div>
-            <div style={{ width: '120px' }}>
-              <Button
-                onClick={selectionA ? handleClearSelectionA : handleGrabSelectionA}
-                secondary
-                fullWidth
-              >
-                {selectionA ? 'Clear Selection' : 'Grab Selection'}
-              </Button>
-            </div>
-          </div>
-          <VerticalSpace space="medium" />
+                <VerticalSpace space="small" />
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+                    {preview ? (
+                      <img
+                        src={preview}
+                        alt={selection?.name || row.label}
+                        style={{
+                          maxWidth: '100px',
+                          maxHeight: '60px',
+                          objectFit: 'contain',
+                          border: '1px solid var(--figma-color-border)',
+                          borderRadius: '2px',
+                          padding: '4px',
+                          backgroundColor: 'var(--figma-color-bg)'
+                        }}
+                      />
+                    ) : (
+                      <Text>
+                        <Muted>None selected</Muted>
+                      </Text>
+                    )}
+                  </div>
+                  <div style={{ width: '120px' }}>
+                    <Button
+                      onClick={selection ? row.handleClear : row.handleGrab}
+                      secondary
+                      fullWidth
+                    >
+                      {selection ? 'Clear Selection' : 'Grab Selection'}
+                    </Button>
+                  </div>
+                </div>
+                <VerticalSpace space="medium" />
+              </div>
+            )
+          })}
 
-          {/* Selection B */}
-          <Text>
-            <Bold>Selection B</Bold>
-          </Text>
-          <VerticalSpace space="small" />
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-              {previewB ? (
-                <img 
-                  src={previewB} 
-                  alt={selectionB?.name || 'Selection B'} 
-                  style={{ 
-                    maxWidth: '100px', 
-                    maxHeight: '60px', 
-                    objectFit: 'contain',
-                    border: '1px solid var(--figma-color-border)',
-                    borderRadius: '2px',
-                    padding: '4px',
-                    backgroundColor: 'var(--figma-color-bg)'
-                  }} 
-                />
-              ) : (
-                <Text>
-                  <Muted>None selected</Muted>
-                </Text>
-              )}
-            </div>
-            <div style={{ width: '120px' }}>
-              <Button
-                onClick={selectionB ? handleClearSelectionB : handleGrabSelectionB}
-                secondary
-                fullWidth
-              >
-                {selectionB ? 'Clear Selection' : 'Grab Selection'}
-              </Button>
-            </div>
-          </div>
           <VerticalSpace space="large" />
  
           <Textbox
@@ -284,8 +329,12 @@ function Plugin() {
           <Dropdown
             options={sourceOptions}
             value={bgVariantSource}
-            onChange={(value) => setBgVariantSource(value.currentTarget.value as 'A' | 'B')}
-            disabled={!selectionA && !selectionB}
+            onChange={(value) =>
+              setBgVariantSource(
+                value.currentTarget.value as 'A' | 'B' | 'C' | 'D'
+              )
+            }
+            disabled={!hasAnyVectorSelection}
           />
           <VerticalSpace space="small" />
           <Text>
@@ -310,9 +359,11 @@ function Plugin() {
             options={sourceOptions}
             value={lightVariantSource}
             onChange={(value) =>
-              setLightVariantSource(value.currentTarget.value as 'A' | 'B')
+              setLightVariantSource(
+                value.currentTarget.value as 'A' | 'B' | 'C' | 'D'
+              )
             }
-            disabled={!selectionA && !selectionB}
+            disabled={!hasAnyVectorSelection}
           />
           <VerticalSpace space="small" />
           <Checkbox
@@ -333,8 +384,12 @@ function Plugin() {
           <Dropdown
             options={sourceOptions}
             value={darkVariantSource}
-            onChange={(value) => setDarkVariantSource(value.currentTarget.value as 'A' | 'B')}
-            disabled={!selectionA && !selectionB}
+            onChange={(value) =>
+              setDarkVariantSource(
+                value.currentTarget.value as 'A' | 'B' | 'C' | 'D'
+              )
+            }
+            disabled={!hasAnyVectorSelection}
           />
           <VerticalSpace space="small" />
           <Checkbox value={darkModeWhite} onValueChange={setDarkModeWhite}>
@@ -353,9 +408,11 @@ function Plugin() {
             options={sourceOptions}
             value={faviconVariantSource}
             onChange={(value) =>
-              setFaviconVariantSource(value.currentTarget.value as 'A' | 'B')
+              setFaviconVariantSource(
+                value.currentTarget.value as 'A' | 'B' | 'C' | 'D'
+              )
             }
-            disabled={!selectionA && !selectionB}
+            disabled={!hasAnyVectorSelection}
           />
           <VerticalSpace space="large" />
 

@@ -1,4 +1,4 @@
-import { emit, on, once, showUI } from '@create-figma-plugin/utilities'
+import { emit, on, once, showUI } from "@create-figma-plugin/utilities";
 
 import {
   CloseHandler,
@@ -8,191 +8,173 @@ import {
   LogoConfig,
   SelectionInfo,
   SelectionUpdateHandler,
-  TextLogoConfig
-} from './types'
+  TextLogoConfig,
+} from "./types";
 
 // Note: Selection IDs are now passed directly in config from UI
 // We don't need to store them globally anymore
 
 export default function () {
   // Handle grabbing selections
-  on<GrabSelectionHandler>('GRAB_SELECTION', async function (slot: 'A' | 'B') {
-    const selection = figma.currentPage.selection
+  on<GrabSelectionHandler>(
+    "GRAB_SELECTION",
+    async function (slot: "A" | "B" | "C" | "D") {
+      const selection = figma.currentPage.selection;
 
-    if (selection.length === 0) {
-      figma.notify('Please select at least one element')
-      return
-    }
+      if (selection.length === 0) {
+        figma.notify("Please select at least one element");
+        return;
+      }
 
-    // If multiple nodes selected, group them
-    let node: SceneNode
-    if (selection.length > 1) {
-      node = figma.group(selection, figma.currentPage)
-      figma.notify(`Grouped ${selection.length} elements`)
-    } else {
-      node = selection[0]
-    }
+      // If multiple nodes selected, group them
+      let node: SceneNode;
+      if (selection.length > 1) {
+        node = figma.group(selection, figma.currentPage);
+        figma.notify(`Grouped ${selection.length} elements`);
+      } else {
+        node = selection[0];
+      }
 
-    // Export node as PNG for preview
-    let imageData: Uint8Array
-    try {
-      imageData = await node.exportAsync({
-        format: 'PNG',
-        constraint: { type: 'SCALE', value: 2 } // 2x scale for better quality
-      })
-    } catch (error) {
-      figma.notify('Failed to generate preview image')
-      return
-    }
+      // Export node as PNG for preview
+      let imageData: Uint8Array;
+      try {
+        imageData = await node.exportAsync({
+          format: "PNG",
+          constraint: { type: "SCALE", value: 2 }, // 2x scale for better quality
+        });
+      } catch (error) {
+        figma.notify("Failed to generate preview image");
+        return;
+      }
 
-    // Send info back to UI (includes the image data)
-    const info: SelectionInfo = {
-      id: node.id,
-      name: node.name,
-      imageData
+      // Send info back to UI (includes the image data)
+      const info: SelectionInfo = {
+        id: node.id,
+        name: node.name,
+        imageData,
+      };
+      emit<SelectionUpdateHandler>("SELECTION_UPDATE", slot, info);
     }
-    emit<SelectionUpdateHandler>('SELECTION_UPDATE', slot, info)
-  })
+  );
 
   // Handle creating component set
   on<CreateComponentSetHandler>(
-    'CREATE_COMPONENT_SET',
+    "CREATE_COMPONENT_SET",
     function (config: LogoConfig) {
       try {
         // Validation
         if (!config.productName.trim()) {
-          config.productName = 'Logo component set'
+          config.productName = "Logo component set";
         }
 
-        if (!config.selectionAId) {
-          figma.notify('Please select at least one element')
-          return
+        if (!hasAnySelection(config)) {
+          figma.notify("Please select at least one element");
+          return;
         }
 
         // Validate that required selections exist
         const sourceIds = [
-          config.bgVariantSource === 'A'
-            ? config.selectionAId
-            : config.selectionBId,
-          config.lightVariantSource === 'A'
-            ? config.selectionAId
-            : config.selectionBId,
-          config.darkVariantSource === 'A'
-            ? config.selectionAId
-            : config.selectionBId,
-          config.faviconVariantSource === 'A'
-            ? config.selectionAId
-            : config.selectionBId
-        ]
+          resolveSelectionId(config.bgVariantSource, config),
+          resolveSelectionId(config.lightVariantSource, config),
+          resolveSelectionId(config.darkVariantSource, config),
+          resolveSelectionId(config.faviconVariantSource, config),
+        ];
 
         for (const id of sourceIds) {
           if (!id) {
-            figma.notify(
-              'Some variants require Selection B, but it is not set'
-            )
-            return
+            figma.notify("Some variants require a selection that is not set");
+            return;
           }
         }
 
         // Create the 4 variants
-        const variants: ComponentNode[] = []
+        const variants: ComponentNode[] = [];
 
         // 1. 315x140 with background
         const bgVariant = createVariant({
           width: 315,
           height: 140,
-          sourceId:
-            config.bgVariantSource === 'A'
-              ? config.selectionAId
-              : config.selectionBId!,
+          sourceId: resolveSelectionId(config.bgVariantSource, config)!,
           backgroundColor: config.backgroundColor,
           colorOverride: null,
           variantName: `Product=${config.productName}, Size=315x140-BG`,
-          padding: 8
-        })
-        variants.push(bgVariant)
+          padding: 8,
+        });
+        variants.push(bgVariant);
 
         // 2. 300x100 Light mode (no bg)
         const lightVariant = createVariant({
           width: 300,
           height: 100,
-          sourceId:
-            config.lightVariantSource === 'A'
-              ? config.selectionAId
-              : config.selectionBId!,
+          sourceId: resolveSelectionId(config.lightVariantSource, config)!,
           backgroundColor: null,
-          colorOverride: config.lightModeBlack ? hexToRgb('#000000') : null,
+          colorOverride: config.lightModeBlack ? hexToRgb("#000000") : null,
           variantName: `Product=${config.productName}, Size=300x100-Light-NoBg`,
-          padding: 0
-        })
-        variants.push(lightVariant)
+          padding: 0,
+        });
+        variants.push(lightVariant);
 
         // 3. 300x100 Dark mode (no bg)
         const darkVariant = createVariant({
           width: 300,
           height: 100,
-          sourceId:
-            config.darkVariantSource === 'A'
-              ? config.selectionAId
-              : config.selectionBId!,
+          sourceId: resolveSelectionId(config.darkVariantSource, config)!,
           backgroundColor: null,
-          colorOverride: config.darkModeWhite ? hexToRgb('#FFFFFF') : null,
+          colorOverride: config.darkModeWhite ? hexToRgb("#FFFFFF") : null,
           variantName: `Product=${config.productName}, Size=300x100-Dark-NoBg`,
-          padding: 0
-        })
-        variants.push(darkVariant)
+          padding: 0,
+        });
+        variants.push(darkVariant);
 
         // 4. 100x100 Favicon
         const faviconVariant = createVariant({
           width: 100,
           height: 100,
-          sourceId:
-            config.faviconVariantSource === 'A'
-              ? config.selectionAId
-              : config.selectionBId!,
+          sourceId: resolveSelectionId(config.faviconVariantSource, config)!,
           backgroundColor: null,
           colorOverride: null,
           variantName: `Product=${config.productName}, Size=100x100-Favicon`,
-          padding: 20
-        })
-        variants.push(faviconVariant)
+          padding: 20,
+        });
+        variants.push(faviconVariant);
 
         // Combine into component set
         const componentSet = figma.combineAsVariants(
           variants,
           figma.currentPage
-        )
-        componentSet.name = config.productName
-        componentSet.cornerRadius = 0
+        );
+        componentSet.name = config.productName;
+        componentSet.cornerRadius = 0;
 
         // Apply auto-layout settings
-        componentSet.layoutMode = 'HORIZONTAL'
-        componentSet.primaryAxisSizingMode = 'AUTO'
-        componentSet.counterAxisSizingMode = 'AUTO'
-        componentSet.counterAxisAlignItems = 'CENTER'
-        componentSet.itemSpacing = 22
+        componentSet.layoutMode = "HORIZONTAL";
+        componentSet.primaryAxisSizingMode = "AUTO";
+        componentSet.counterAxisSizingMode = "AUTO";
+        componentSet.counterAxisAlignItems = "CENTER";
+        componentSet.itemSpacing = 22;
 
         // Position and zoom
-        figma.viewport.scrollAndZoomIntoView([componentSet])
-        figma.notify('Component set created!')
+        figma.viewport.scrollAndZoomIntoView([componentSet]);
+        figma.notify("Component set created!");
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error'
-        figma.notify(`Error: ${message}`)
-        console.error(error)
+        const message =
+          error instanceof Error ? error.message : "Unknown error";
+        figma.notify(`Error: ${message}`);
+        console.error(error);
       }
     }
-  )
+  );
 
   // Handle creating text-based logo component set
   on<CreateTextLogoHandler>(
-    'CREATE_TEXT_LOGO',
+    "CREATE_TEXT_LOGO",
     async function (config: TextLogoConfig) {
       try {
         // Load Inter Bold font
-        await figma.loadFontAsync({ family: 'Inter', style: 'Bold' })
+        await figma.loadFontAsync({ family: "Inter", style: "Bold" });
 
         // Create the 4 variants
-        const variants: ComponentNode[] = []
+        const variants: ComponentNode[] = [];
 
         // 1. 315x140 Primary Logo with background
         const primaryVariant = createTextVariant({
@@ -202,9 +184,9 @@ export default function () {
           backgroundColor: config.backgroundColor,
           textColor: hexToRgb(config.textColor),
           variantName: `Product=${config.productName}, Size=315x140-BG`,
-          padding: 8
-        })
-        variants.push(primaryVariant)
+          padding: 8,
+        });
+        variants.push(primaryVariant);
 
         // 2. 300x100 Light Mode (no bg, black text)
         const lightVariant = createTextVariant({
@@ -214,9 +196,9 @@ export default function () {
           backgroundColor: null,
           textColor: hexToRgb(config.textColor),
           variantName: `Product=${config.productName}, Size=300x100-Light-NoBg`,
-          padding: 0
-        })
-        variants.push(lightVariant)
+          padding: 0,
+        });
+        variants.push(lightVariant);
 
         // 3. 300x100 Dark Mode (no bg, white text)
         const darkVariant = createTextVariant({
@@ -224,11 +206,11 @@ export default function () {
           height: 100,
           text: config.logoText,
           backgroundColor: null,
-          textColor: hexToRgb('#FFFFFF'),
+          textColor: hexToRgb("#FFFFFF"),
           variantName: `Product=${config.productName}, Size=300x100-Dark-NoBg`,
-          padding: 0
-        })
-        variants.push(darkVariant)
+          padding: 0,
+        });
+        variants.push(darkVariant);
 
         // 4. 100x100 Favicon with background
         const faviconVariant = createTextVariant({
@@ -239,112 +221,160 @@ export default function () {
           backgroundCornerRadius: 12,
           textColor: hexToRgb(config.textColor),
           variantName: `Product=${config.productName}, Size=100x100-Favicon`,
-          padding: 20
-        })
-        variants.push(faviconVariant)
+          padding: 20,
+        });
+        variants.push(faviconVariant);
 
         // Combine into component set
         const componentSet = figma.combineAsVariants(
           variants,
           figma.currentPage
-        )
-        componentSet.name = config.productName
-        componentSet.cornerRadius = 0
+        );
+        componentSet.name = config.productName;
+        componentSet.cornerRadius = 0;
 
         // Apply auto-layout settings
-        componentSet.layoutMode = 'HORIZONTAL'
-        componentSet.primaryAxisSizingMode = 'AUTO'
-        componentSet.counterAxisSizingMode = 'AUTO'
-        componentSet.counterAxisAlignItems = 'CENTER'
-        componentSet.itemSpacing = 22
+        componentSet.layoutMode = "HORIZONTAL";
+        componentSet.primaryAxisSizingMode = "AUTO";
+        componentSet.counterAxisSizingMode = "AUTO";
+        componentSet.counterAxisAlignItems = "CENTER";
+        componentSet.itemSpacing = 22;
 
         // Position and zoom
-        figma.viewport.scrollAndZoomIntoView([componentSet])
-        figma.notify('Text logo component set created!')
+        figma.viewport.scrollAndZoomIntoView([componentSet]);
+        figma.notify("Text logo component set created!");
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error'
-        figma.notify(`Error: ${message}`)
-        console.error(error)
+        const message =
+          error instanceof Error ? error.message : "Unknown error";
+        figma.notify(`Error: ${message}`);
+        console.error(error);
       }
     }
-  )
+  );
 
   // Handle close
-  once<CloseHandler>('CLOSE', function () {
-    figma.closePlugin()
-  })
+  once<CloseHandler>("CLOSE", function () {
+    figma.closePlugin();
+  });
 
   showUI({
     width: 320,
-    height: 600
-  })
+    height: 600,
+  });
+}
+
+function hasAnySelection(config: LogoConfig): boolean {
+  return Boolean(
+    config.selectionAId ||
+      config.selectionBId ||
+      config.selectionCId ||
+      config.selectionDId
+  );
+}
+
+function resolveSelectionId(
+  source: "A" | "B" | "C" | "D",
+  config: LogoConfig
+): string | null {
+  if (source === "A") {
+    return config.selectionAId;
+  }
+  if (source === "B") {
+    return config.selectionBId;
+  }
+  if (source === "C") {
+    return config.selectionCId;
+  }
+  if (source === "D") {
+    return config.selectionDId;
+  }
+  return null;
 }
 
 // Helper: Create a single variant component
 function createVariant(options: {
-  width: number
-  height: number
-  sourceId: string
-  backgroundColor: string | null
-  colorOverride: RGB | null
-  variantName: string
-  padding?: number
+  width: number;
+  height: number;
+  sourceId: string;
+  backgroundColor: string | null;
+  colorOverride: RGB | null;
+  variantName: string;
+  padding?: number;
 }): ComponentNode {
   // Get source node
-  const sourceNode = figma.getNodeById(options.sourceId)
-  if (!sourceNode || !('clone' in sourceNode)) {
-    throw new Error('Source node not found or cannot be cloned')
+  const sourceNode = figma.getNodeById(options.sourceId);
+  if (!sourceNode || !("clone" in sourceNode)) {
+    throw new Error("Source node not found or cannot be cloned");
   }
 
   // Create component
-  const component = figma.createComponent()
-  component.resize(options.width, options.height)
-  component.name = options.variantName
-  component.cornerRadius = 0
+  const component = figma.createComponent();
+  component.resize(options.width, options.height);
+  component.name = options.variantName;
+  component.cornerRadius = 0;
+  component.fills = [];
+  // Ensure variant itself scales and keeps aspect ratio within the component set
+  component.constraints = { horizontal: "SCALE", vertical: "SCALE" };
+  if ("constrainProportions" in component) {
+    (component as any).constrainProportions = true;
+  }
 
   // Add background if specified
   if (options.backgroundColor) {
-    const bg = figma.createRectangle()
-    bg.resize(options.width, options.height)
-    bg.fills = [{ type: 'SOLID', color: hexToRgb(options.backgroundColor) }]
-    bg.name = 'Background'
-    component.appendChild(bg)
+    const bg = figma.createRectangle();
+    bg.resize(options.width, options.height);
+    bg.fills = [{ type: "SOLID", color: hexToRgb(options.backgroundColor) }];
+    bg.name = "Background";
+    // Set constraints to scale for background
+    bg.constraints = { horizontal: "SCALE", vertical: "SCALE" };
+    setScaleConstraintsRecursive(bg);
+    logNodeState("bg-variant-bg", bg);
+    component.appendChild(bg);
   }
 
   // Clone source and add to component
-  const clone = sourceNode.clone()
-  
+  const clone = sourceNode.clone();
+
   // Scale to fit with padding
-  const padding = options.padding ?? 16
-  scaleToFit(clone, options.width, options.height, padding)
-  
+  const padding = options.padding ?? 16;
+  scaleToFit(clone, options.width, options.height, padding);
+
   // Center in parent
-  centerInParent(clone, options.width, options.height)
-  
+  centerInParent(clone, options.width, options.height);
+
   // Apply color override if specified
   if (options.colorOverride) {
-    applyColorToAllFills(clone, options.colorOverride)
+    applyColorToAllFills(clone, options.colorOverride);
   }
-  
+
+  // Set constraints to scale and lock aspect ratio for all children
+  setScaleConstraintsRecursive(clone);
+
+  // Remove hidden default fills (Figma adds #FFFFFF by default)
+  removeHiddenFills(clone);
+
+    // Debug: confirm constraints and fills applied
+    logNodeState("bg-variant-clone", clone);
+
   // Append to component (type assertion since we know it's a scene node)
-  if ('type' in clone && clone.type !== 'PAGE') {
-    component.appendChild(clone as SceneNode)
+  if ("type" in clone && clone.type !== "PAGE") {
+    component.appendChild(clone as SceneNode);
   }
-  
-  return component
+
+  return component;
 }
 
 // Helper: Convert hex to RGB (0-1 range)
 function hexToRgb(hex: string): RGB {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   if (!result) {
-    throw new Error('Invalid hex color')
+    throw new Error("Invalid hex color");
   }
   return {
     r: parseInt(result[1], 16) / 255,
     g: parseInt(result[2], 16) / 255,
-    b: parseInt(result[3], 16) / 255
-  }
+    b: parseInt(result[3], 16) / 255,
+  };
 }
 
 // Helper: Scale node to fit within bounds (contained)
@@ -354,16 +384,16 @@ function scaleToFit(
   maxHeight: number,
   padding: number
 ): void {
-  if (!('resize' in node) || !('width' in node) || !('height' in node)) return
+  if (!("resize" in node) || !("width" in node) || !("height" in node)) return;
 
-  const availableWidth = maxWidth - padding * 2
-  const availableHeight = maxHeight - padding * 2
+  const availableWidth = maxWidth - padding * 2;
+  const availableHeight = maxHeight - padding * 2;
 
-  const scaleX = availableWidth / node.width
-  const scaleY = availableHeight / node.height
-  const scale = Math.min(scaleX, scaleY)
+  const scaleX = availableWidth / node.width;
+  const scaleY = availableHeight / node.height;
+  const scale = Math.min(scaleX, scaleY);
 
-  node.resize(node.width * scale, node.height * scale)
+  node.resize(node.width * scale, node.height * scale);
 }
 
 // Helper: Center node within parent dimensions
@@ -372,89 +402,166 @@ function centerInParent(
   parentWidth: number,
   parentHeight: number
 ): void {
-  if (!('width' in node) || !('height' in node) || !('x' in node) || !('y' in node)) return
-  
-  node.x = (parentWidth - node.width) / 2
-  node.y = (parentHeight - node.height) / 2
+  if (
+    !("width" in node) ||
+    !("height" in node) ||
+    !("x" in node) ||
+    !("y" in node)
+  )
+    return;
+
+  node.x = (parentWidth - node.width) / 2;
+  node.y = (parentHeight - node.height) / 2;
 }
 
 // Helper: Recursively apply color to all fills
 function applyColorToAllFills(node: BaseNode, color: RGB): void {
-  if ('fills' in node && node.fills !== figma.mixed) {
-    const fills = node.fills as Paint[]
+  if ("fills" in node && node.fills !== figma.mixed) {
+    const fills = node.fills as Paint[];
     node.fills = fills.map((fill) => {
-      if (fill.type === 'SOLID') {
-        return { ...fill, color }
+      if (fill.type === "SOLID") {
+        return { ...fill, color };
       }
-      return fill
-    })
+      return fill;
+    });
   }
 
-  if ('children' in node) {
+  if ("children" in node) {
     for (const child of node.children) {
-      applyColorToAllFills(child, color)
+      applyColorToAllFills(child, color);
     }
   }
 }
 
 // Helper: Create a text-based variant component
 function createTextVariant(options: {
-  width: number
-  height: number
-  text: string
-  backgroundColor: string | null
-  backgroundCornerRadius?: number
-  textColor: RGB
-  variantName: string
-  padding: number
+  width: number;
+  height: number;
+  text: string;
+  backgroundColor: string | null;
+  backgroundCornerRadius?: number;
+  textColor: RGB;
+  variantName: string;
+  padding: number;
 }): ComponentNode {
   // Create component
-  const component = figma.createComponent()
-  component.resize(options.width, options.height)
-  component.name = options.variantName
-  component.cornerRadius = 0
+  const component = figma.createComponent();
+  component.resize(options.width, options.height);
+  component.name = options.variantName;
+  component.cornerRadius = 0;
+  component.fills = [];
+  // Ensure variant itself scales and keeps aspect ratio within the component set
+  component.constraints = { horizontal: "SCALE", vertical: "SCALE" };
+  if ("constrainProportions" in component) {
+    (component as any).constrainProportions = true;
+  }
 
   // Add background if specified
   if (options.backgroundColor) {
-    const bg = figma.createRectangle()
-    bg.resize(options.width, options.height)
-    bg.fills = [{ type: 'SOLID', color: hexToRgb(options.backgroundColor) }]
-    if (typeof options.backgroundCornerRadius === 'number') {
-      bg.cornerRadius = options.backgroundCornerRadius
+    const bg = figma.createRectangle();
+    bg.resize(options.width, options.height);
+    bg.fills = [{ type: "SOLID", color: hexToRgb(options.backgroundColor) }];
+    if (typeof options.backgroundCornerRadius === "number") {
+      bg.cornerRadius = options.backgroundCornerRadius;
     }
-    bg.name = 'Background'
-    component.appendChild(bg)
+    bg.name = "Background";
+    // Set constraints to scale for background
+    bg.constraints = { horizontal: "SCALE", vertical: "SCALE" };
+    setScaleConstraintsRecursive(bg);
+    logNodeState("text-variant-bg", bg);
+    component.appendChild(bg);
   }
 
   // Create text node
-  const textNode = figma.createText()
-  textNode.fontName = { family: 'Inter', style: 'Bold' }
-  textNode.characters = options.text
-  textNode.fills = [{ type: 'SOLID', color: options.textColor }]
-  textNode.name = 'Logo Text'
+  const textNode = figma.createText();
+  textNode.fontName = { family: "Inter", style: "Bold" };
+  textNode.characters = options.text;
+  textNode.fills = [{ type: "SOLID", color: options.textColor }];
+  textNode.name = "Logo Text";
+  // Set constraints to scale for text
+  textNode.constraints = { horizontal: "SCALE", vertical: "SCALE" };
+  setScaleConstraintsRecursive(textNode);
+  logNodeState("text-variant-text", textNode);
 
   // Scale text to fit using contain principle
-  const availableWidth = options.width - options.padding * 2
-  const availableHeight = options.height - options.padding * 2
+  const availableWidth = options.width - options.padding * 2;
+  const availableHeight = options.height - options.padding * 2;
 
   // Start with a large font size and scale down to fit
-  const initialFontSize = 200
-  textNode.fontSize = initialFontSize
+  const initialFontSize = 200;
+  textNode.fontSize = initialFontSize;
 
   // Calculate scale factor based on text bounds
-  const scaleX = availableWidth / textNode.width
-  const scaleY = availableHeight / textNode.height
-  const scale = Math.min(scaleX, scaleY)
+  const scaleX = availableWidth / textNode.width;
+  const scaleY = availableHeight / textNode.height;
+  const scale = Math.min(scaleX, scaleY);
 
   // Apply the calculated font size
-  const finalFontSize = Math.floor(initialFontSize * scale)
-  textNode.fontSize = finalFontSize
+  const finalFontSize = Math.floor(initialFontSize * scale);
+  textNode.fontSize = finalFontSize;
 
   // Center text in component
-  textNode.x = (options.width - textNode.width) / 2
-  textNode.y = (options.height - textNode.height) / 2
+  textNode.x = (options.width - textNode.width) / 2;
+  textNode.y = (options.height - textNode.height) / 2;
 
-  component.appendChild(textNode)
+  component.appendChild(textNode);
 
-  return component
+  // Clean up any hidden default fills added by Figma
+  removeHiddenFills(component);
+  logNodeState("text-variant-component", component);
+
+  return component;
+}
+
+// Helper: Recursively set scale constraints and lock aspect ratio
+function setScaleConstraintsRecursive(node: BaseNode): void {
+  // Set constraints to SCALE for nodes that support it
+  if ("constraints" in node) {
+    node.constraints = { horizontal: "SCALE", vertical: "SCALE" };
+  }
+
+  // Lock aspect ratio for nodes that support it
+  if ("constrainProportions" in node) {
+    node.constrainProportions = true;
+  }
+
+  // Recurse into children
+  if ("children" in node) {
+    for (const child of node.children) {
+      setScaleConstraintsRecursive(child);
+    }
+  }
+}
+
+// Helper: Remove hidden fills (Figma adds #FFFFFF by default)
+function removeHiddenFills(node: BaseNode): void {
+  if ("fills" in node && node.fills !== figma.mixed) {
+    const fills = node.fills as Paint[];
+    // Filter out hidden fills
+    const visibleFills = fills.filter((fill) => fill.visible !== false);
+    node.fills = visibleFills;
+  }
+
+  // Recurse into children
+  if ("children" in node) {
+    for (const child of node.children) {
+      removeHiddenFills(child);
+    }
+  }
+}
+
+// Helper: Debug constraints and fills
+function logNodeState(label: string, node: BaseNode): void {
+  if ("constraints" in node) {
+    console.log(`[${label}] constraints`, (node as ConstraintMixin).constraints);
+  }
+  if ("constrainProportions" in node) {
+    const maybeConstrain = (node as any).constrainProportions;
+    if (typeof maybeConstrain === "boolean") {
+      console.log(`[${label}] constrainProportions`, maybeConstrain);
+    }
+  }
+  if ("fills" in node && node.fills !== figma.mixed) {
+    console.log(`[${label}] fills`, (node as GeometryMixin).fills);
+  }
 }

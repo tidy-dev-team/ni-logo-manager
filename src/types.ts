@@ -11,25 +11,27 @@ export interface SelectionInfo {
 export interface LogoConfig {
   productName: string
   backgroundColor: string
-  bgVariantSource: 'A' | 'B'
-  lightVariantSource: 'A' | 'B'
-  darkVariantSource: 'A' | 'B'
-  faviconVariantSource: 'A' | 'B'
+  bgVariantSource: 'A' | 'B' | 'C' | 'D'
+  lightVariantSource: 'A' | 'B' | 'C' | 'D'
+  darkVariantSource: 'A' | 'B' | 'C' | 'D'
+  faviconVariantSource: 'A' | 'B' | 'C' | 'D'
   lightModeBlack: boolean
   darkModeWhite: boolean
-  selectionAId: string
+  selectionAId: string | null
   selectionBId: string | null
+  selectionCId: string | null
+  selectionDId: string | null
 }
 
 // Event Handlers
 export interface GrabSelectionHandler extends EventHandler {
   name: 'GRAB_SELECTION'
-  handler: (slot: 'A' | 'B') => void
+  handler: (slot: 'A' | 'B' | 'C' | 'D') => void
 }
 
 export interface SelectionUpdateHandler extends EventHandler {
   name: 'SELECTION_UPDATE'
-  handler: (slot: 'A' | 'B', info: SelectionInfo | null) => void
+  handler: (slot: 'A' | 'B' | 'C' | 'D', info: SelectionInfo | null) => void
 }
 
 export interface CreateComponentSetHandler extends EventHandler {
