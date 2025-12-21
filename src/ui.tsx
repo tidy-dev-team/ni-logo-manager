@@ -11,6 +11,8 @@ import {
   Tabs,
   TabsOption,
   Text,
+  SegmentedControl,
+  SegmentedControlOption,
   Textbox,
   TextboxColor,
   VerticalSpace,
@@ -51,18 +53,19 @@ function Plugin() {
   const [productName, setProductName] = useState<string>("");
   const [backgroundColor, setBackgroundColor] = useState<string>("FFFFFF");
   const [backgroundOpacity, setBackgroundOpacity] = useState<number>(1);
-  const [bgVariantSource, setBgVariantSource] = useState<"A" | "B" | "C" | "D">(
-    "A"
-  );
-  const [lightVariantSource, setLightVariantSource] = useState<
-    "A" | "B" | "C" | "D"
-  >("A");
-  const [darkVariantSource, setDarkVariantSource] = useState<
-    "A" | "B" | "C" | "D"
-  >("A");
-  const [faviconVariantSource, setFaviconVariantSource] = useState<
-    "A" | "B" | "C" | "D"
-  >("B");
+  const [faviconHasBackground, setFaviconHasBackground] =
+    useState<boolean>(false);
+  const [faviconBackgroundShape, setFaviconBackgroundShape] = useState<
+    "square" | "circle"
+  >("square");
+  const [bgVariantSource, setBgVariantSource] =
+    useState<"A" | "B" | "C" | "D">("A");
+  const [lightVariantSource, setLightVariantSource] =
+    useState<"A" | "B" | "C" | "D">("A");
+  const [darkVariantSource, setDarkVariantSource] =
+    useState<"A" | "B" | "C" | "D">("A");
+  const [faviconVariantSource, setFaviconVariantSource] =
+    useState<"A" | "B" | "C" | "D">("B");
   const [lightModeBlack, setLightModeBlack] = useState<boolean>(false);
   const [darkModeWhite, setDarkModeWhite] = useState<boolean>(false);
 
@@ -73,6 +76,11 @@ function Plugin() {
   const [textBackgroundColor, setTextBackgroundColor] =
     useState<string>("#EEEEEE");
   const [textBackgroundOpacity, setTextBackgroundOpacity] = useState<number>(1);
+  const [textFaviconHasBackground, setTextFaviconHasBackground] =
+    useState<boolean>(true);
+  const [textFaviconBackgroundShape, setTextFaviconBackgroundShape] = useState<
+    "square" | "circle"
+  >("square");
   const [textTextColor, setTextTextColor] = useState<string>("#000000");
 
   // Listen for selection updates from main
@@ -160,6 +168,8 @@ function Plugin() {
         lightVariantSource,
         darkVariantSource,
         faviconVariantSource,
+        faviconHasBackground,
+        faviconBackgroundShape,
         lightModeBlack,
         darkModeWhite,
         selectionAId: selectionA?.id || null,
@@ -178,6 +188,8 @@ function Plugin() {
       lightVariantSource,
       darkVariantSource,
       faviconVariantSource,
+      faviconHasBackground,
+      faviconBackgroundShape,
       lightModeBlack,
       darkModeWhite,
       selectionA,
@@ -196,6 +208,8 @@ function Plugin() {
         faviconText: faviconText.trim() || "T",
         backgroundColor: textBackgroundColor,
         backgroundOpacity: textBackgroundOpacity,
+        faviconHasBackground: textFaviconHasBackground,
+        faviconBackgroundShape: textFaviconBackgroundShape,
         textColor: textTextColor,
       };
       emit<CreateTextLogoHandler>("CREATE_TEXT_LOGO", config);
@@ -206,6 +220,8 @@ function Plugin() {
       faviconText,
       textBackgroundColor,
       textBackgroundOpacity,
+      textFaviconHasBackground,
+      textFaviconBackgroundShape,
       textTextColor,
     ]
   );
@@ -215,6 +231,11 @@ function Plugin() {
     { value: "B", text: "Selection B" },
     { value: "C", text: "Selection C" },
     { value: "D", text: "Selection D" },
+  ];
+
+  const faviconShapeOptions: Array<SegmentedControlOption> = [
+    { value: "square", children: "Square" },
+    { value: "circle", children: "Circle" },
   ];
 
   const hasAnyVectorSelection = Boolean(
@@ -452,6 +473,26 @@ function Plugin() {
             }
             disabled={!hasAnyVectorSelection}
           />
+          <VerticalSpace space="small" />
+          <Checkbox
+            value={faviconHasBackground}
+            onValueChange={setFaviconHasBackground}
+          >
+            <Text>Favicon has background</Text>
+          </Checkbox>
+          <VerticalSpace space="small" />
+          <Text>
+            <Muted>Background shape</Muted>
+          </Text>
+          <VerticalSpace space="extraSmall" />
+          <SegmentedControl
+            disabled={!faviconHasBackground}
+            options={faviconShapeOptions}
+            value={faviconBackgroundShape}
+            onValueChange={(value) =>
+              setFaviconBackgroundShape(value as "square" | "circle")
+            }
+          />
           <VerticalSpace space="large" />
 
           <Button fullWidth onClick={handleCreateComponentSet}>
@@ -521,6 +562,26 @@ function Plugin() {
                 setTextBackgroundOpacity(value);
               }
             }}
+          />
+          <VerticalSpace space="small" />
+          <Checkbox
+            value={textFaviconHasBackground}
+            onValueChange={setTextFaviconHasBackground}
+          >
+            <Text>Favicon has background</Text>
+          </Checkbox>
+          <VerticalSpace space="small" />
+          <Text>
+            <Muted>Favicon background shape</Muted>
+          </Text>
+          <VerticalSpace space="extraSmall" />
+          <SegmentedControl
+            disabled={!textFaviconHasBackground}
+            options={faviconShapeOptions}
+            value={textFaviconBackgroundShape}
+            onValueChange={(value) =>
+              setTextFaviconBackgroundShape(value as "square" | "circle")
+            }
           />
           <VerticalSpace space="large" />
 
