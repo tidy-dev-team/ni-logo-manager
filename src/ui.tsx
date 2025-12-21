@@ -331,7 +331,7 @@ function Plugin() {
           </Text>
           <VerticalSpace space="medium" />
 
-          <Text>315×140 with Background</Text>
+          <Text>315x140 with Background</Text>
           <VerticalSpace space="small" />
           <Text>
             <Muted>Source</Muted>
@@ -362,7 +362,7 @@ function Plugin() {
           />
           <VerticalSpace space="medium" />
 
-          <Text>300×100 Light Mode (no background)</Text>
+          <Text>300x100 Light Mode (no background)</Text>
           <VerticalSpace space="small" />
           <Text>
             <Muted>Source</Muted>
@@ -384,7 +384,7 @@ function Plugin() {
           </Checkbox>
           <VerticalSpace space="medium" />
 
-          <Text>300×100 Dark Mode (no background)</Text>
+          <Text>300x100 Dark Mode (no background)</Text>
           <VerticalSpace space="small" />
           <Text>
             <Muted>Source</Muted>
@@ -406,7 +406,7 @@ function Plugin() {
           </Checkbox>
           <VerticalSpace space="medium" />
 
-          <Text>100×100 Favicon</Text>
+          <Text>100x100 Favicon</Text>
           <VerticalSpace space="small" />
           <Text>
             <Muted>Source</Muted>

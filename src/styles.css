@@ -3,7 +3,7 @@ body div:has(label) {
   gap: 4px;
 }
 
-label {
+label[class*="_tab_"] {
   padding: 0 !important;
   padding-bottom: 12px !important;
 }
