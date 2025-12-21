@@ -401,7 +401,9 @@ function scaleToFit(
   maxHeight: number,
   padding: number
 ): void {
-  if (!("resize" in node) || !("width" in node) || !("height" in node)) return;
+  if (!("width" in node) || !("height" in node)) {
+    return;
+  }
 
   const availableWidth = maxWidth - padding * 2;
   const availableHeight = maxHeight - padding * 2;
@@ -410,7 +412,20 @@ function scaleToFit(
   const scaleY = availableHeight / node.height;
   const scale = Math.min(scaleX, scaleY);
 
-  node.resize(node.width * scale, node.height * scale);
+  if (scale === 1) {
+    return;
+  }
+
+  // Prefer `rescale()` since it scales strokes too.
+  if ("rescale" in node && typeof (node as any).rescale === "function") {
+    (node as any).rescale(scale);
+    return;
+  }
+
+  // Fallback: `resize()` does not scale strokes.
+  if ("resize" in node && typeof (node as any).resize === "function") {
+    (node as any).resize(node.width * scale, node.height * scale);
+  }
 }
 
 // Helper: Center node within parent dimensions
