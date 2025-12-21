@@ -16,6 +16,8 @@ export interface LogoConfig {
   lightVariantSource: 'A' | 'B' | 'C' | 'D'
   darkVariantSource: 'A' | 'B' | 'C' | 'D'
   faviconVariantSource: 'A' | 'B' | 'C' | 'D'
+  faviconHasBackground: boolean
+  faviconBackgroundShape: 'square' | 'circle'
   lightModeBlack: boolean
   darkModeWhite: boolean
   selectionAId: string | null
@@ -52,6 +54,8 @@ export interface TextLogoConfig {
   faviconText: string
   backgroundColor: string
   backgroundOpacity: number // 0..1
+  faviconHasBackground: boolean
+  faviconBackgroundShape: 'square' | 'circle'
   textColor: string
 }
 

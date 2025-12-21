@@ -77,8 +77,14 @@ export default function () {
           resolveSelectionId(config.bgVariantSource, config),
           resolveSelectionId(config.lightVariantSource, config),
           resolveSelectionId(config.darkVariantSource, config),
-          resolveSelectionId(config.faviconVariantSource, config),
         ];
+
+        if (config.faviconHasBackground === false) {
+          // Favicon uses only the background element.
+          // We don't require a source selection.
+        } else {
+          sourceIds.push(resolveSelectionId(config.faviconVariantSource, config));
+        }
 
         for (const id of sourceIds) {
           if (!id) {
@@ -97,6 +103,7 @@ export default function () {
           sourceId: resolveSelectionId(config.bgVariantSource, config)!,
           backgroundColor: config.backgroundColor,
           backgroundOpacity: config.backgroundOpacity,
+          backgroundShape: "square",
           colorOverride: null,
           variantName: `Product=${config.productName}, Size=315x140-BG`,
           padding: 8,
@@ -128,16 +135,30 @@ export default function () {
         variants.push(darkVariant);
 
         // 4. 100x100 Favicon
-        const faviconVariant = createVariant({
-          width: 100,
-          height: 100,
-          sourceId: resolveSelectionId(config.faviconVariantSource, config)!,
-          backgroundColor: null,
-          colorOverride: null,
-          variantName: `Product=${config.productName}, Size=100x100-Favicon`,
-          padding: 20,
-        });
-        variants.push(faviconVariant);
+        if (config.faviconHasBackground === true) {
+          const faviconVariant = createVariant({
+            width: 100,
+            height: 100,
+            sourceId: resolveSelectionId(config.faviconVariantSource, config)!,
+            backgroundColor: config.backgroundColor,
+            backgroundOpacity: config.backgroundOpacity,
+            backgroundShape: config.faviconBackgroundShape,
+            colorOverride: null,
+            variantName: `Product=${config.productName}, Size=100x100-Favicon`,
+            padding: 20,
+          });
+          variants.push(faviconVariant);
+        } else {
+          const faviconVariant = createFaviconBackgroundComponent({
+            width: 100,
+            height: 100,
+            backgroundColor: config.backgroundColor,
+            backgroundOpacity: config.backgroundOpacity,
+            backgroundShape: config.faviconBackgroundShape,
+            variantName: `Product=${config.productName}, Size=100x100-Favicon`,
+          });
+          variants.push(faviconVariant);
+        }
 
         // Combine into component set
         const componentSet = figma.combineAsVariants(
@@ -184,6 +205,7 @@ export default function () {
           text: config.logoText,
           backgroundColor: config.backgroundColor,
           backgroundOpacity: config.backgroundOpacity,
+          backgroundShape: "square",
           textColor: hexToRgb(config.textColor),
           variantName: `Product=${config.productName}, Size=315x140-BG`,
           padding: 8,
@@ -214,14 +236,14 @@ export default function () {
         });
         variants.push(darkVariant);
 
-        // 4. 100x100 Favicon with background
+        // 4. 100x100 Favicon
         const faviconVariant = createTextVariant({
           width: 100,
           height: 100,
           text: config.faviconText,
-          backgroundColor: config.backgroundColor,
+          backgroundColor: config.faviconHasBackground ? config.backgroundColor : null,
           backgroundOpacity: config.backgroundOpacity,
-          backgroundCornerRadius: 12,
+          backgroundShape: config.faviconBackgroundShape,
           textColor: hexToRgb(config.textColor),
           variantName: `Product=${config.productName}, Size=100x100-Favicon`,
           padding: 20,
@@ -301,6 +323,42 @@ function clampOpacity(opacity: unknown): number {
   return Math.max(0, Math.min(1, opacity));
 }
 
+function createFaviconBackgroundComponent(options: {
+  width: number;
+  height: number;
+  backgroundColor: string;
+  backgroundOpacity: number;
+  backgroundShape: "square" | "circle";
+  variantName: string;
+}): ComponentNode {
+  const component = figma.createComponent();
+  component.resize(options.width, options.height);
+  component.name = options.variantName;
+  component.cornerRadius = 0;
+  component.fills = [];
+
+  const bg = figma.createRectangle();
+  bg.resize(options.width, options.height);
+  bg.fills = [
+    {
+      type: "SOLID",
+      color: hexToRgb(options.backgroundColor),
+      opacity: clampOpacity(options.backgroundOpacity),
+    },
+  ];
+  bg.name = "Background";
+  if (options.backgroundShape === "circle") {
+    bg.cornerRadius = Math.min(options.width, options.height) / 2;
+  } else {
+    bg.cornerRadius = 0;
+  }
+  bg.constraints = { horizontal: "SCALE", vertical: "SCALE" };
+  setScaleConstraintsRecursive(bg);
+
+  component.appendChild(bg);
+  return component;
+}
+
 // Helper: Create a single variant component
 function createVariant(options: {
   width: number;
@@ -308,6 +366,7 @@ function createVariant(options: {
   sourceId: string;
   backgroundColor: string | null;
   backgroundOpacity?: number; // 0..1
+  backgroundShape?: "square" | "circle";
   colorOverride: RGB | null;
   variantName: string;
   padding?: number;
@@ -342,6 +401,11 @@ function createVariant(options: {
       },
     ];
     bg.name = "Background";
+    if (options.backgroundShape === "circle") {
+      bg.cornerRadius = Math.min(options.width, options.height) / 2;
+    } else {
+      bg.cornerRadius = 0;
+    }
     // Set constraints to scale for background
     bg.constraints = { horizontal: "SCALE", vertical: "SCALE" };
     setScaleConstraintsRecursive(bg);
@@ -472,7 +536,7 @@ function createTextVariant(options: {
   text: string;
   backgroundColor: string | null;
   backgroundOpacity?: number; // 0..1
-  backgroundCornerRadius?: number;
+  backgroundShape?: "square" | "circle";
   textColor: RGB;
   variantName: string;
   padding: number;
@@ -500,10 +564,12 @@ function createTextVariant(options: {
         opacity: clampOpacity(options.backgroundOpacity),
       },
     ];
-    if (typeof options.backgroundCornerRadius === "number") {
-      bg.cornerRadius = options.backgroundCornerRadius;
-    }
     bg.name = "Background";
+    if (options.backgroundShape === "circle") {
+      bg.cornerRadius = Math.min(options.width, options.height) / 2;
+    } else {
+      bg.cornerRadius = 0;
+    }
     // Set constraints to scale for background
     bg.constraints = { horizontal: "SCALE", vertical: "SCALE" };
     setScaleConstraintsRecursive(bg);
