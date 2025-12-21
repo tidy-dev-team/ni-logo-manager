@@ -13,11 +13,12 @@ import {
   Text,
   Textbox,
   TextboxColor,
-  VerticalSpace
-} from '@create-figma-plugin/ui'
-import { emit, on } from '@create-figma-plugin/utilities'
-import { h } from 'preact'
-import { useCallback, useState } from 'preact/hooks'
+  VerticalSpace,
+} from "@create-figma-plugin/ui";
+import { emit, on } from "@create-figma-plugin/utilities";
+import { h } from "preact";
+import { useCallback, useState } from "preact/hooks";
+import "./styles.css";
 
 import {
   CreateComponentSetHandler,
@@ -26,92 +27,95 @@ import {
   LogoConfig,
   SelectionInfo,
   SelectionUpdateHandler,
-  TextLogoConfig
-} from './types'
+  TextLogoConfig,
+} from "./types";
 
 function Plugin() {
   // Tab state
-  const [activeTab, setActiveTab] = useState<string>('select-vectors')
+  const [activeTab, setActiveTab] = useState<string>("select-vectors");
 
   // Selection state
-  const [selectionA, setSelectionA] = useState<SelectionInfo | null>(null)
-  const [selectionB, setSelectionB] = useState<SelectionInfo | null>(null)
-  
+  const [selectionA, setSelectionA] = useState<SelectionInfo | null>(null);
+  const [selectionB, setSelectionB] = useState<SelectionInfo | null>(null);
+
   // Preview image URLs
-  const [previewA, setPreviewA] = useState<string | null>(null)
-  const [previewB, setPreviewB] = useState<string | null>(null)
+  const [previewA, setPreviewA] = useState<string | null>(null);
+  const [previewB, setPreviewB] = useState<string | null>(null);
 
   // Logo configuration state
-  const defaultProductName = 'Logo component set'
-  const [productName, setProductName] = useState<string>('')
-  const [backgroundColor, setBackgroundColor] = useState<string>('#FFFFFF')
-  const [bgVariantSource, setBgVariantSource] = useState<'A' | 'B'>('A')
-  const [lightVariantSource, setLightVariantSource] = useState<'A' | 'B'>('A')
-  const [darkVariantSource, setDarkVariantSource] = useState<'A' | 'B'>('A')
-  const [faviconVariantSource, setFaviconVariantSource] = useState<'A' | 'B'>('B')
-  const [lightModeBlack, setLightModeBlack] = useState<boolean>(false)
-  const [darkModeWhite, setDarkModeWhite] = useState<boolean>(false)
+  const defaultProductName = "Logo component set";
+  const [productName, setProductName] = useState<string>("");
+  const [backgroundColor, setBackgroundColor] = useState<string>("#FFFFFF");
+  const [bgVariantSource, setBgVariantSource] = useState<"A" | "B">("A");
+  const [lightVariantSource, setLightVariantSource] = useState<"A" | "B">("A");
+  const [darkVariantSource, setDarkVariantSource] = useState<"A" | "B">("A");
+  const [faviconVariantSource, setFaviconVariantSource] = useState<"A" | "B">(
+    "B"
+  );
+  const [lightModeBlack, setLightModeBlack] = useState<boolean>(false);
+  const [darkModeWhite, setDarkModeWhite] = useState<boolean>(false);
 
   // Create Logotype tab state
-  const [textProductName, setTextProductName] = useState<string>('')
-  const [logoText, setLogoText] = useState<string>('')
-  const [faviconText, setFaviconText] = useState<string>('')
-  const [textBackgroundColor, setTextBackgroundColor] = useState<string>('#EEEEEE')
-  const [textTextColor, setTextTextColor] = useState<string>('#000000')
+  const [textProductName, setTextProductName] = useState<string>("");
+  const [logoText, setLogoText] = useState<string>("");
+  const [faviconText, setFaviconText] = useState<string>("");
+  const [textBackgroundColor, setTextBackgroundColor] =
+    useState<string>("#EEEEEE");
+  const [textTextColor, setTextTextColor] = useState<string>("#000000");
 
   // Listen for selection updates from main
-  on<SelectionUpdateHandler>('SELECTION_UPDATE', function (slot, info) {
+  on<SelectionUpdateHandler>("SELECTION_UPDATE", function (slot, info) {
     if (info && info.imageData) {
       // Convert Uint8Array to base64 data URL
-      let binary = ''
-      const bytes = new Uint8Array(info.imageData)
-      const len = bytes.byteLength
+      let binary = "";
+      const bytes = new Uint8Array(info.imageData);
+      const len = bytes.byteLength;
       for (let i = 0; i < len; i++) {
-        binary += String.fromCharCode(bytes[i])
+        binary += String.fromCharCode(bytes[i]);
       }
-      const base64 = btoa(binary)
-      const dataUrl = `data:image/png;base64,${base64}`
-      
-      if (slot === 'A') {
-        setSelectionA(info)
-        setPreviewA(dataUrl)
+      const base64 = btoa(binary);
+      const dataUrl = `data:image/png;base64,${base64}`;
+
+      if (slot === "A") {
+        setSelectionA(info);
+        setPreviewA(dataUrl);
       } else {
-        setSelectionB(info)
-        setPreviewB(dataUrl)
+        setSelectionB(info);
+        setPreviewB(dataUrl);
       }
     }
-  })
+  });
 
   // Grab selection handlers
   const handleGrabSelectionA = useCallback(function () {
-    emit<GrabSelectionHandler>('GRAB_SELECTION', 'A')
-  }, [])
+    emit<GrabSelectionHandler>("GRAB_SELECTION", "A");
+  }, []);
 
   const handleGrabSelectionB = useCallback(function () {
-    emit<GrabSelectionHandler>('GRAB_SELECTION', 'B')
-  }, [])
+    emit<GrabSelectionHandler>("GRAB_SELECTION", "B");
+  }, []);
 
   // Clear selection handlers
   const handleClearSelectionA = useCallback(function () {
-    setSelectionA(null)
-    setPreviewA(null)
-  }, [])
+    setSelectionA(null);
+    setPreviewA(null);
+  }, []);
 
   const handleClearSelectionB = useCallback(function () {
-    setSelectionB(null)
-    setPreviewB(null)
-  }, [])
+    setSelectionB(null);
+    setPreviewB(null);
+  }, []);
 
   // Create component set handler
   const handleCreateComponentSet = useCallback(
     function () {
       // Validation
       if (!productName.trim() && !defaultProductName) {
-        return // Main will show error notification
+        return; // Main will show error notification
       }
 
       if (!selectionA) {
-        return // Main will show error notification
+        return; // Main will show error notification
       }
 
       // Build config
@@ -125,10 +129,10 @@ function Plugin() {
         lightModeBlack,
         darkModeWhite,
         selectionAId: selectionA.id,
-        selectionBId: selectionB?.id || null
-      }
+        selectionBId: selectionB?.id || null,
+      };
 
-      emit<CreateComponentSetHandler>('CREATE_COMPONENT_SET', config)
+      emit<CreateComponentSetHandler>("CREATE_COMPONENT_SET", config);
     },
     [
       productName,
@@ -140,37 +144,35 @@ function Plugin() {
       lightModeBlack,
       darkModeWhite,
       selectionA,
-      selectionB
+      selectionB,
     ]
-  )
+  );
 
   // Create Text Logo handler
   const handleCreateTextLogo = useCallback(
     function () {
       const config: TextLogoConfig = {
-        productName: textProductName.trim() || 'Logo component set',
-        logoText: logoText.trim() || 'Text logo',
-        faviconText: faviconText.trim() || 'T',
+        productName: textProductName.trim() || "Logo component set",
+        logoText: logoText.trim() || "Text logo",
+        faviconText: faviconText.trim() || "T",
         backgroundColor: textBackgroundColor,
-        textColor: textTextColor
-      }
-      emit<CreateTextLogoHandler>('CREATE_TEXT_LOGO', config)
+        textColor: textTextColor,
+      };
+      emit<CreateTextLogoHandler>("CREATE_TEXT_LOGO", config);
     },
     [textProductName, logoText, faviconText, textBackgroundColor, textTextColor]
-  )
-
-
+  );
 
   // Dropdown options for variant sources
   const sourceOptions: Array<DropdownOption> = [
-    { value: 'A', text: 'Selection A' },
-    { value: 'B', text: 'Selection B' }
-  ]
+    { value: "A", text: "Selection A" },
+    { value: "B", text: "Selection B" },
+  ];
 
   const tabsOptions: Array<TabsOption> = [
-    { value: 'select-vectors', children: 'Select vectors' },
-    { value: 'create-logotype', children: 'Create logotype' }
-  ]
+    { value: "select-vectors", children: "Select vectors" },
+    { value: "create-logotype", children: "Create logotype" },
+  ];
 
   return (
     <Container space="medium">
@@ -182,27 +184,27 @@ function Plugin() {
       />
       <VerticalSpace space="medium" />
 
-      {activeTab === 'select-vectors' && (
+      {activeTab === "select-vectors" && (
         <div>
           <Text>
             <Bold>Selection A</Bold>
           </Text>
           <VerticalSpace space="small" />
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+            <div style={{ flex: 1, display: "flex", alignItems: "center" }}>
               {previewA ? (
-                <img 
-                  src={previewA} 
-                  alt={selectionA?.name || 'Selection A'} 
-                  style={{ 
-                    maxWidth: '100px', 
-                    maxHeight: '60px', 
-                    objectFit: 'contain',
-                    border: '1px solid var(--figma-color-border)',
-                    borderRadius: '2px',
-                    padding: '4px',
-                    backgroundColor: 'var(--figma-color-bg)'
-                  }} 
+                <img
+                  src={previewA}
+                  alt={selectionA?.name || "Selection A"}
+                  style={{
+                    maxWidth: "100px",
+                    maxHeight: "60px",
+                    objectFit: "contain",
+                    border: "1px solid var(--figma-color-border)",
+                    borderRadius: "2px",
+                    padding: "4px",
+                    backgroundColor: "var(--figma-color-bg)",
+                  }}
                 />
               ) : (
                 <Text>
@@ -210,13 +212,15 @@ function Plugin() {
                 </Text>
               )}
             </div>
-            <div style={{ width: '120px' }}>
+            <div style={{ width: "120px" }}>
               <Button
-                onClick={selectionA ? handleClearSelectionA : handleGrabSelectionA}
+                onClick={
+                  selectionA ? handleClearSelectionA : handleGrabSelectionA
+                }
                 secondary
                 fullWidth
               >
-                {selectionA ? 'Clear Selection' : 'Grab Selection'}
+                {selectionA ? "Clear Selection" : "Grab Selection"}
               </Button>
             </div>
           </div>
@@ -227,21 +231,21 @@ function Plugin() {
             <Bold>Selection B</Bold>
           </Text>
           <VerticalSpace space="small" />
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+            <div style={{ flex: 1, display: "flex", alignItems: "center" }}>
               {previewB ? (
-                <img 
-                  src={previewB} 
-                  alt={selectionB?.name || 'Selection B'} 
-                  style={{ 
-                    maxWidth: '100px', 
-                    maxHeight: '60px', 
-                    objectFit: 'contain',
-                    border: '1px solid var(--figma-color-border)',
-                    borderRadius: '2px',
-                    padding: '4px',
-                    backgroundColor: 'var(--figma-color-bg)'
-                  }} 
+                <img
+                  src={previewB}
+                  alt={selectionB?.name || "Selection B"}
+                  style={{
+                    maxWidth: "100px",
+                    maxHeight: "60px",
+                    objectFit: "contain",
+                    border: "1px solid var(--figma-color-border)",
+                    borderRadius: "2px",
+                    padding: "4px",
+                    backgroundColor: "var(--figma-color-bg)",
+                  }}
                 />
               ) : (
                 <Text>
@@ -249,18 +253,20 @@ function Plugin() {
                 </Text>
               )}
             </div>
-            <div style={{ width: '120px' }}>
+            <div style={{ width: "120px" }}>
               <Button
-                onClick={selectionB ? handleClearSelectionB : handleGrabSelectionB}
+                onClick={
+                  selectionB ? handleClearSelectionB : handleGrabSelectionB
+                }
                 secondary
                 fullWidth
               >
-                {selectionB ? 'Clear Selection' : 'Grab Selection'}
+                {selectionB ? "Clear Selection" : "Grab Selection"}
               </Button>
             </div>
           </div>
           <VerticalSpace space="large" />
- 
+
           <Textbox
             onValueInput={setProductName}
             value={productName}
@@ -284,7 +290,9 @@ function Plugin() {
           <Dropdown
             options={sourceOptions}
             value={bgVariantSource}
-            onChange={(value) => setBgVariantSource(value.currentTarget.value as 'A' | 'B')}
+            onChange={(value) =>
+              setBgVariantSource(value.currentTarget.value as "A" | "B")
+            }
             disabled={!selectionA && !selectionB}
           />
           <VerticalSpace space="small" />
@@ -310,15 +318,12 @@ function Plugin() {
             options={sourceOptions}
             value={lightVariantSource}
             onChange={(value) =>
-              setLightVariantSource(value.currentTarget.value as 'A' | 'B')
+              setLightVariantSource(value.currentTarget.value as "A" | "B")
             }
             disabled={!selectionA && !selectionB}
           />
           <VerticalSpace space="small" />
-          <Checkbox
-            value={lightModeBlack}
-            onValueChange={setLightModeBlack}
-          >
+          <Checkbox value={lightModeBlack} onValueChange={setLightModeBlack}>
             <Text>Make logo black</Text>
           </Checkbox>
           <VerticalSpace space="medium" />
@@ -333,7 +338,9 @@ function Plugin() {
           <Dropdown
             options={sourceOptions}
             value={darkVariantSource}
-            onChange={(value) => setDarkVariantSource(value.currentTarget.value as 'A' | 'B')}
+            onChange={(value) =>
+              setDarkVariantSource(value.currentTarget.value as "A" | "B")
+            }
             disabled={!selectionA && !selectionB}
           />
           <VerticalSpace space="small" />
@@ -353,7 +360,7 @@ function Plugin() {
             options={sourceOptions}
             value={faviconVariantSource}
             onChange={(value) =>
-              setFaviconVariantSource(value.currentTarget.value as 'A' | 'B')
+              setFaviconVariantSource(value.currentTarget.value as "A" | "B")
             }
             disabled={!selectionA && !selectionB}
           />
@@ -367,7 +374,7 @@ function Plugin() {
         </div>
       )}
 
-      {activeTab === 'create-logotype' && (
+      {activeTab === "create-logotype" && (
         <div>
           <Text>
             <Muted>Component set name</Muted>
@@ -431,7 +438,7 @@ function Plugin() {
         </div>
       )}
     </Container>
-  )
+  );
 }
 
-export default render(Plugin)
+export default render(Plugin);

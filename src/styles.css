@@ -1,0 +1,9 @@
+body div:has(label) {
+  margin-bottom: 12px;
+  gap: 4px;
+}
+
+label {
+  padding: 0 !important;
+  padding-bottom: 12px !important;
+}
