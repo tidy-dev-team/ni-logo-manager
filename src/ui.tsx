@@ -32,7 +32,7 @@ import {
 
 function Plugin() {
   // Tab state
-  const [activeTab, setActiveTab] = useState<string>("select-vectors");
+  const [activeTab, setActiveTab] = useState<string>("Select Vectors");
 
   // Selection state
   const [selectionA, setSelectionA] = useState<SelectionInfo | null>(null);
@@ -170,8 +170,8 @@ function Plugin() {
   ];
 
   const tabsOptions: Array<TabsOption> = [
-    { value: "select-vectors", children: "Select vectors" },
-    { value: "create-logotype", children: "Create logotype" },
+    { value: "Select Vectors", children: "Select Vectors" },
+    { value: "Create Logotype", children: "Create Logotype" },
   ];
 
   return (
@@ -184,7 +184,7 @@ function Plugin() {
       />
       <VerticalSpace space="medium" />
 
-      {activeTab === "select-vectors" && (
+      {activeTab === "Select Vectors" && (
         <div>
           <Text>
             <Bold>Selection A</Bold>
@@ -374,7 +374,7 @@ function Plugin() {
         </div>
       )}
 
-      {activeTab === "create-logotype" && (
+      {activeTab === "Create Logotype" && (
         <div>
           <Text>
             <Muted>Component set name</Muted>
