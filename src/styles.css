@@ -6,9 +6,18 @@ body div:has(label) {
 label[class*="_tab_"] {
   padding: 0 !important;
   padding-bottom: 12px !important;
+  cursor: pointer !important;
+}
+
+label[class*="_tab_"] div {
+  cursor: pointer !important;
 }
 
 h2 {
   margin-top: 20px;
   margin-bottom: 12px;
+}
+
+button {
+  cursor: pointer !important;
 }

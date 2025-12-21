@@ -49,16 +49,20 @@ function Plugin() {
   // Logo configuration state
   const defaultProductName = "Logo component set";
   const [productName, setProductName] = useState<string>("");
-  const [backgroundColor, setBackgroundColor] = useState<string>("#FFFFFF");
+  const [backgroundColor, setBackgroundColor] = useState<string>("FFFFFF");
   const [backgroundOpacity, setBackgroundOpacity] = useState<number>(1);
-  const [bgVariantSource, setBgVariantSource] =
-    useState<"A" | "B" | "C" | "D">("A");
-  const [lightVariantSource, setLightVariantSource] =
-    useState<"A" | "B" | "C" | "D">("A");
-  const [darkVariantSource, setDarkVariantSource] =
-    useState<"A" | "B" | "C" | "D">("A");
-  const [faviconVariantSource, setFaviconVariantSource] =
-    useState<"A" | "B" | "C" | "D">("B");
+  const [bgVariantSource, setBgVariantSource] = useState<"A" | "B" | "C" | "D">(
+    "A"
+  );
+  const [lightVariantSource, setLightVariantSource] = useState<
+    "A" | "B" | "C" | "D"
+  >("A");
+  const [darkVariantSource, setDarkVariantSource] = useState<
+    "A" | "B" | "C" | "D"
+  >("A");
+  const [faviconVariantSource, setFaviconVariantSource] = useState<
+    "A" | "B" | "C" | "D"
+  >("B");
   const [lightModeBlack, setLightModeBlack] = useState<boolean>(false);
   const [darkModeWhite, setDarkModeWhite] = useState<boolean>(false);
 
@@ -218,8 +222,8 @@ function Plugin() {
   );
 
   const tabsOptions: Array<TabsOption> = [
-    { value: "Select Vectors", children: "Select Vectors" },
-    { value: "Create Logotype", children: "Create Logotype" },
+    { value: "Select Vectors", children: <h2>Select Vectors</h2> },
+    { value: "Create Logotype", children: <h2>Create Logotype</h2> },
   ];
 
   const selectionRows = [
@@ -269,55 +273,81 @@ function Plugin() {
 
       {activeTab === "Select Vectors" && (
         <div>
-          {selectionRows.map((row) => {
-            const preview = row.preview;
-            const selection = row.selection;
-            return (
-              <div key={row.key}>
-                <Text>
-                  <Bold>{row.label}</Bold>
-                </Text>
-                <VerticalSpace space="small" />
-                <div
-                  style={{ display: "flex", gap: "8px", alignItems: "center" }}
-                >
+          <div
+            style={{
+              display: "flex",
+              gap: "12px",
+              flexWrap: "wrap",
+            }}
+          >
+            {selectionRows.map((row) => {
+              const preview = row.preview;
+              const selection = row.selection;
+              return (
+                <div key={row.key}>
+                  <Text>
+                    <Bold>{row.label}</Bold>
+                  </Text>
+                  <VerticalSpace space="small" />
                   <div
-                    style={{ flex: 1, display: "flex", alignItems: "center" }}
+                    style={{
+                      display: "flex",
+                      gap: "8px",
+                      alignItems: "center",
+                      flexDirection: "column",
+                    }}
                   >
-                    {preview ? (
-                      <img
-                        src={preview || undefined}
-                        alt={selection?.name || row.label}
-                        style={{
-                          maxWidth: "100px",
-                          maxHeight: "60px",
-                          objectFit: "contain",
-                          border: "1px solid var(--figma-color-border)",
-                          borderRadius: "2px",
-                          padding: "4px",
-                          backgroundColor: "var(--figma-color-bg)",
-                        }}
-                      />
-                    ) : (
-                      <Text>
-                        <Muted>None selected</Muted>
-                      </Text>
-                    )}
-                  </div>
-                  <div style={{ width: "120px" }}>
-                    <Button
-                      onClick={selection ? row.handleClear : row.handleGrab}
-                      secondary
-                      fullWidth
+                    <div
+                      style={{ flex: 1, display: "flex", alignItems: "center" }}
                     >
-                      {selection ? "Clear Selection" : "Grab Selection"}
-                    </Button>
+                      {preview ? (
+                        <img
+                          src={preview || undefined}
+                          alt={selection?.name || row.label}
+                          style={{
+                            width: "120px",
+                            height: "60px",
+                            objectFit: "contain",
+                            border: "1px solid var(--figma-color-border)",
+                            padding: "4px",
+                            borderRadius: "6px",
+                            backgroundColor: "var(--figma-color-bg)",
+                          }}
+                        />
+                      ) : (
+                        <Text
+                          style={{
+                            width: "120px",
+                            height: "60px",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            textAlign: "center",
+                            borderRadius: "6px",
+                            transform: "none",
+                            border: "1px solid var(--figma-color-border)",
+                          }}
+                        >
+                          <Muted>None selected</Muted>
+                        </Text>
+                      )}
+                    </div>
+                    <div style={{ width: "120px" }}>
+                      <Button
+                        onClick={selection ? row.handleClear : row.handleGrab}
+                        secondary
+                        danger={selection ? true : false}
+                        fullWidth
+                      >
+                        {selection ? "Clear Selection" : "Grab Selection"}
+                      </Button>
+                    </div>
                   </div>
+                  <VerticalSpace space="medium" />
                 </div>
-                <VerticalSpace space="medium" />
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
 
           <Textbox
             onValueInput={setProductName}
