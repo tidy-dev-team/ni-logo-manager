@@ -354,7 +354,7 @@ function Plugin() {
                             border: "1px solid #f1f1f1ff",
                           }}
                         >
-                          <Muted>None selected</Muted>
+                          <Muted className={"no-img"}>None selected</Muted>
                         </Text>
                       )}
                     </div>

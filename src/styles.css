@@ -29,7 +29,6 @@ button:hover {
 div[class*="_segmentedControl_"] {
   width: fit-content;
   margin-bottom: 0 !important;
-  /* border: 1px solid #e6e6e6; */
   box-shadow: 0 0 0 1px #e6e6e6 inset;
 }
 
