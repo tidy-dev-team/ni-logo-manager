@@ -521,6 +521,7 @@ function Plugin() {
             style={{
               height: "32px",
             }}
+            className={"primary-btn"}
             fullWidth
             onClick={handleCreateComponentSet}
           >

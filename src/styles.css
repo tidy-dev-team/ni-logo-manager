@@ -61,3 +61,9 @@ div[class*="_dropdown_"] {
 .flex-me * {
   max-width: 140px !important;
 }
+
+body:has(.no-img) .primary-btn {
+  pointer-events: none;
+  background-color: #ddd;
+  color: #a3a3a3;
+}
