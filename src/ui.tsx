@@ -20,7 +20,7 @@ import {
 import { emit, on } from "@create-figma-plugin/utilities";
 import { h } from "preact";
 import { useCallback, useState } from "preact/hooks";
-import styles from "./styles.css";
+import "!./styles.css";
 
 import {
   CreateComponentSetHandler,
