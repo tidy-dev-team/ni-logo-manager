@@ -565,33 +565,40 @@ function Plugin() {
           />
           <VerticalSpace space="large" />
 
-          <Text>
-            <Muted>Text color</Muted>
-          </Text>
-          <VerticalSpace space="small" />
-          <TextboxColor
-            hexColor={textTextColor}
-            onHexColorValueInput={setTextTextColor}
-            opacity="100"
-          />
+          <div className="flex-me">
+            <div className="flex-me column">
+              <Text>
+                <Muted>Text color</Muted>
+              </Text>
+              <VerticalSpace space="small" />
+              <TextboxColor
+                hexColor={textTextColor}
+                onHexColorValueInput={setTextTextColor}
+                opacity="100"
+              />
+            </div>
 
-          <VerticalSpace space="medium" />
+            <VerticalSpace space="medium" />
 
-          <Text>
-            <Muted>Background color</Muted>
-          </Text>
-          <VerticalSpace space="small" />
-          <TextboxColor
-            hexColor={textBackgroundColor}
-            onHexColorValueInput={setTextBackgroundColor}
-            opacity={String(Math.round(textBackgroundOpacity * 100))}
-            onOpacityNumericValueInput={(value) => {
-              if (typeof value === "number") {
-                setTextBackgroundOpacity(value);
-              }
-            }}
-          />
-          <VerticalSpace space="small" />
+            <div className="flex-me column">
+              <Text>
+                <Muted>Background color</Muted>
+              </Text>
+              <VerticalSpace space="small" />
+              <TextboxColor
+                hexColor={textBackgroundColor}
+                onHexColorValueInput={setTextBackgroundColor}
+                opacity={String(Math.round(textBackgroundOpacity * 100))}
+                onOpacityNumericValueInput={(value) => {
+                  if (typeof value === "number") {
+                    setTextBackgroundOpacity(value);
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <VerticalSpace space="large" />
+          <VerticalSpace space="large" />
           <Checkbox
             value={textFaviconHasBackground}
             onValueChange={setTextFaviconHasBackground}

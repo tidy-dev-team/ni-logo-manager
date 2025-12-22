@@ -42,3 +42,17 @@ body div.card {
 div[class*="_dropdown_"] {
   background-color: #fff;
 }
+
+.flex-me {
+  display: flex;
+  gap: 4px;
+}
+
+.column {
+  gap: 0;
+  flex-direction: column;
+}
+
+.flex-me * {
+  max-width: 140px !important;
+}
