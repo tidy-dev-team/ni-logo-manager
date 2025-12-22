@@ -26,3 +26,7 @@ div[class*="_segmentedControl_"] {
   width: fit-content;
   margin-bottom: 0 !important;
 }
+
+body div.card {
+  background-color: #dddddd !important;
+}

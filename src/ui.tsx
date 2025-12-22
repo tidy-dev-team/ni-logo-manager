@@ -20,7 +20,7 @@ import {
 import { emit, on } from "@create-figma-plugin/utilities";
 import { h } from "preact";
 import { useCallback, useState } from "preact/hooks";
-import "./styles.css";
+import styles from "./styles.css";
 
 import {
   CreateComponentSetHandler,
@@ -383,135 +383,152 @@ function Plugin() {
           <VerticalSpace space="large" />
 
           <Text>
-            <Bold>Variant Configuration</Bold>
+            <h2>Variant Configuration</h2>
           </Text>
           <VerticalSpace space="medium" />
 
-          <Text>315x140 with Background</Text>
-          <VerticalSpace space="small" />
-          <Text>
-            <Muted>Source</Muted>
-          </Text>
-          <VerticalSpace space="extraSmall" />
-          <Dropdown
-            options={sourceOptions}
-            value={bgVariantSource}
-            onChange={(e) =>
-              setBgVariantSource(e.currentTarget.value as "A" | "B" | "C" | "D")
-            }
-            disabled={!hasAnyVectorSelection}
-          />
-          <VerticalSpace space="small" />
-          <Text>
-            <Muted>Background Color</Muted>
-          </Text>
-          <VerticalSpace space="extraSmall" />
-          <TextboxColor
-            hexColor={backgroundColor}
-            onHexColorValueInput={setBackgroundColor}
-            opacity={String(Math.round(backgroundOpacity * 100))}
-            onOpacityNumericValueInput={(value) => {
-              if (typeof value === "number") {
-                setBackgroundOpacity(value);
+          <div className="card">
+            <h3>315x140 with Background</h3>
+            <VerticalSpace space="small" />
+            <Text>
+              <Muted>Source</Muted>
+            </Text>
+            <VerticalSpace space="extraSmall" />
+            <Dropdown
+              options={sourceOptions}
+              value={bgVariantSource}
+              onChange={(e) =>
+                setBgVariantSource(
+                  e.currentTarget.value as "A" | "B" | "C" | "D"
+                )
               }
-            }}
-          />
-          <VerticalSpace space="medium" />
+              disabled={!hasAnyVectorSelection}
+            />
+            <VerticalSpace space="small" />
+            <Text>
+              <Muted>Background Color</Muted>
+            </Text>
+            <VerticalSpace space="extraSmall" />
+            <TextboxColor
+              hexColor={backgroundColor}
+              onHexColorValueInput={setBackgroundColor}
+              opacity={String(Math.round(backgroundOpacity * 100))}
+              onOpacityNumericValueInput={(value) => {
+                if (typeof value === "number") {
+                  setBackgroundOpacity(value);
+                }
+              }}
+            />
+            <VerticalSpace space="medium" />
+          </div>
 
-          <Text>300x100 Light Mode (no background)</Text>
-          <VerticalSpace space="small" />
-          <Text>
-            <Muted>Source</Muted>
-          </Text>
-          <VerticalSpace space="extraSmall" />
-          <Dropdown
-            options={sourceOptions}
-            value={lightVariantSource}
-            onChange={(e) =>
-              setLightVariantSource(
-                e.currentTarget.value as "A" | "B" | "C" | "D"
-              )
-            }
-            disabled={!hasAnyVectorSelection}
-          />
-          <VerticalSpace space="small" />
-          <Checkbox value={lightModeBlack} onValueChange={setLightModeBlack}>
-            <Text>Make logo black</Text>
-          </Checkbox>
-          <VerticalSpace space="medium" />
+          <div className="card">
+            <h3>300x100 Light Mode (no background)</h3>
+            <VerticalSpace space="small" />
+            <Text>
+              <Muted>Source</Muted>
+            </Text>
+            <VerticalSpace space="extraSmall" />
+            <Dropdown
+              options={sourceOptions}
+              value={lightVariantSource}
+              onChange={(e) =>
+                setLightVariantSource(
+                  e.currentTarget.value as "A" | "B" | "C" | "D"
+                )
+              }
+              disabled={!hasAnyVectorSelection}
+            />
+            <VerticalSpace space="small" />
+            <Checkbox value={lightModeBlack} onValueChange={setLightModeBlack}>
+              <Text>Make logo black</Text>
+            </Checkbox>
+            <VerticalSpace space="medium" />
+          </div>
 
-          <Text>300x100 Dark Mode (no background)</Text>
-          <VerticalSpace space="small" />
-          <Text>
-            <Muted>Source</Muted>
-          </Text>
-          <VerticalSpace space="extraSmall" />
-          <Dropdown
-            options={sourceOptions}
-            value={darkVariantSource}
-            onChange={(e) =>
-              setDarkVariantSource(
-                e.currentTarget.value as "A" | "B" | "C" | "D"
-              )
-            }
-            disabled={!hasAnyVectorSelection}
-          />
-          <VerticalSpace space="small" />
-          <Checkbox value={darkModeWhite} onValueChange={setDarkModeWhite}>
-            <Text>Make logo white</Text>
-          </Checkbox>
-          <VerticalSpace space="medium" />
+          <div className="card">
+            <h3>300x100 Dark Mode (no background)</h3>
+            <VerticalSpace space="small" />
+            <Text>
+              <Muted>Source</Muted>
+            </Text>
+            <VerticalSpace space="extraSmall" />
+            <Dropdown
+              options={sourceOptions}
+              value={darkVariantSource}
+              onChange={(e) =>
+                setDarkVariantSource(
+                  e.currentTarget.value as "A" | "B" | "C" | "D"
+                )
+              }
+              disabled={!hasAnyVectorSelection}
+            />
+            <VerticalSpace space="small" />
+            <Checkbox value={darkModeWhite} onValueChange={setDarkModeWhite}>
+              <Text>Make logo white</Text>
+            </Checkbox>
+            <VerticalSpace space="medium" />
+          </div>
 
-          <Text>100x100 Favicon</Text>
-          <VerticalSpace space="small" />
-          <Text>
-            <Muted>Source</Muted>
-          </Text>
-          <VerticalSpace space="extraSmall" />
-          <Dropdown
-            options={sourceOptions}
-            value={faviconVariantSource}
-            onChange={(e) =>
-              setFaviconVariantSource(
-                e.currentTarget.value as "A" | "B" | "C" | "D"
-              )
-            }
-            disabled={!hasAnyVectorSelection}
-          />
-          <VerticalSpace space="small" />
-          <Checkbox
-            value={faviconHasBackground}
-            onValueChange={setFaviconHasBackground}
-          >
-            <Text>Favicon has background</Text>
-          </Checkbox>
-          <VerticalSpace space="small" />
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <Text
+          <div className="card">
+            <h3>100x100 Favicon</h3>
+            <VerticalSpace space="small" />
+            <Text>
+              <Muted>Source</Muted>
+            </Text>
+            <VerticalSpace space="extraSmall" />
+            <Dropdown
+              options={sourceOptions}
+              value={faviconVariantSource}
+              onChange={(e) =>
+                setFaviconVariantSource(
+                  e.currentTarget.value as "A" | "B" | "C" | "D"
+                )
+              }
+              disabled={!hasAnyVectorSelection}
+            />
+            <VerticalSpace space="small" />
+            <Checkbox
+              value={faviconHasBackground}
+              onValueChange={setFaviconHasBackground}
+            >
+              <Text>Favicon has background</Text>
+            </Checkbox>
+            <VerticalSpace space="small" />
+            <div
               style={{
-                flexGrow: "1",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
               }}
             >
-              <Muted>Background shape</Muted>
-            </Text>
-            <SegmentedControl
-              disabled={!faviconHasBackground}
-              options={faviconShapeOptions}
-              value={faviconBackgroundShape}
-              onValueChange={(value) =>
-                setFaviconBackgroundShape(value as "square" | "circle")
-              }
-            />
+              <Text
+                style={{
+                  flexGrow: "1",
+                }}
+              >
+                <Muted>Background shape</Muted>
+              </Text>
+              <SegmentedControl
+                disabled={!faviconHasBackground}
+                options={faviconShapeOptions}
+                value={faviconBackgroundShape}
+                onValueChange={(value) =>
+                  setFaviconBackgroundShape(value as "square" | "circle")
+                }
+              />
+            </div>
           </div>
+
           <VerticalSpace space="large" />
 
-          <Button fullWidth onClick={handleCreateComponentSet}>
+          <Button
+            style={{
+              height: "32px",
+            }}
+            fullWidth
+            onClick={handleCreateComponentSet}
+          >
             Create component set
           </Button>
           <VerticalSpace space="small" />
