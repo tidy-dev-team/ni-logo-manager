@@ -517,8 +517,6 @@ function Plugin() {
             </div>
           </div>
 
-          <VerticalSpace space="large" />
-
           <Button
             style={{
               height: "32px",
@@ -601,20 +599,37 @@ function Plugin() {
             <Text>Favicon has background</Text>
           </Checkbox>
           <VerticalSpace space="small" />
-          <Text>
-            <Muted>Favicon background shape</Muted>
-          </Text>
-          <VerticalSpace space="extraSmall" />
-          <SegmentedControl
-            disabled={!textFaviconHasBackground}
-            options={faviconShapeOptions}
-            value={textFaviconBackgroundShape}
-            onValueChange={(value) =>
-              setTextFaviconBackgroundShape(value as "square" | "circle")
-            }
-          />
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Text
+              style={{
+                flexGrow: "1",
+              }}
+            >
+              <Muted>Background shape</Muted>
+            </Text>
+            <SegmentedControl
+              disabled={!textFaviconHasBackground}
+              options={faviconShapeOptions}
+              value={textFaviconBackgroundShape}
+              onValueChange={(value) =>
+                setTextFaviconBackgroundShape(value as "square" | "circle")
+              }
+            />
+          </div>
 
-          <Button fullWidth onClick={handleCreateTextLogo}>
+          <Button
+            style={{
+              height: "32px",
+            }}
+            fullWidth
+            onClick={handleCreateTextLogo}
+          >
             Create component set
           </Button>
           <VerticalSpace space="small" />
