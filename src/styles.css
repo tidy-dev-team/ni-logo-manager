@@ -28,5 +28,12 @@ div[class*="_segmentedControl_"] {
 }
 
 body div.card {
-  background-color: #dddddd !important;
+  border-radius: 6px;
+  padding: 8px;
+  margin-bottom: 12px;
+  background-color: #f7f7f7;
+}
+
+div[class*="_dropdown_"] {
+  background-color: #fff;
 }

@@ -419,7 +419,6 @@ function Plugin() {
                 }
               }}
             />
-            <VerticalSpace space="medium" />
           </div>
 
           <div className="card">
@@ -443,7 +442,6 @@ function Plugin() {
             <Checkbox value={lightModeBlack} onValueChange={setLightModeBlack}>
               <Text>Make logo black</Text>
             </Checkbox>
-            <VerticalSpace space="medium" />
           </div>
 
           <div className="card">
@@ -467,7 +465,6 @@ function Plugin() {
             <Checkbox value={darkModeWhite} onValueChange={setDarkModeWhite}>
               <Text>Make logo white</Text>
             </Checkbox>
-            <VerticalSpace space="medium" />
           </div>
 
           <div className="card">
@@ -616,7 +613,6 @@ function Plugin() {
               setTextFaviconBackgroundShape(value as "square" | "circle")
             }
           />
-          <VerticalSpace space="large" />
 
           <Button fullWidth onClick={handleCreateTextLogo}>
             Create component set
