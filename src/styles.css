@@ -29,6 +29,8 @@ button:hover {
 div[class*="_segmentedControl_"] {
   width: fit-content;
   margin-bottom: 0 !important;
+  /* border: 1px solid #e6e6e6; */
+  box-shadow: 0 0 0 1px #e6e6e6 inset;
 }
 
 body div.card {
@@ -37,6 +39,10 @@ body div.card {
   margin-bottom: 12px;
   background-color: #f7f7f7;
   border: 1px solid #f1f1f1;
+}
+
+div.card label[class*="_checkbox_"] div[class*="_box_"] {
+  background-color: #fff;
 }
 
 div[class*="_dropdown_"] {
