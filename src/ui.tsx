@@ -78,14 +78,14 @@ function Plugin() {
   const [logoText, setLogoText] = useState<string>("");
   const [faviconText, setFaviconText] = useState<string>("");
   const [textBackgroundColor, setTextBackgroundColor] =
-    useState<string>("#EEEEEE");
+    useState<string>("EEEEEE");
   const [textBackgroundOpacity, setTextBackgroundOpacity] = useState<number>(1);
   const [textFaviconHasBackground, setTextFaviconHasBackground] =
     useState<boolean>(true);
   const [textFaviconBackgroundShape, setTextFaviconBackgroundShape] = useState<
     "square" | "circle"
   >("square");
-  const [textTextColor, setTextTextColor] = useState<string>("#000000");
+  const [textTextColor, setTextTextColor] = useState<string>("000000");
 
   // Listen for selection updates from main
   on<SelectionUpdateHandler>("SELECTION_UPDATE", function (slot, info) {
