@@ -62,7 +62,7 @@ div[class*="_dropdown_"] {
   max-width: 140px !important;
 }
 
-body:has(.no-img) .primary-btn {
+body:not(:has(.has-img)) .primary-btn {
   pointer-events: none;
   background-color: #ddd;
   color: #a3a3a3;

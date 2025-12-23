@@ -327,6 +327,7 @@ function Plugin() {
                     >
                       {preview ? (
                         <img
+                          className={"has-img"}
                           src={preview || undefined}
                           alt={selection?.name || row.label}
                           style={{
@@ -378,7 +379,7 @@ function Plugin() {
           <Textbox
             onValueInput={setProductName}
             value={productName}
-            placeholder="Logo component set"
+            placeholder="Component set name"
           />
           <VerticalSpace space="large" />
 
