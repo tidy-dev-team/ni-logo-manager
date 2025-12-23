@@ -577,12 +577,13 @@ function Plugin() {
                 hexColor={textTextColor}
                 onHexColorValueInput={setTextTextColor}
                 opacity="100"
+                className="hide-opacity"
               />
             </div>
 
             <VerticalSpace space="medium" />
 
-            <div className="flex-me column">
+            <div className="flex-me column z-9">
               <Text>
                 <Muted>Background color</Muted>
               </Text>

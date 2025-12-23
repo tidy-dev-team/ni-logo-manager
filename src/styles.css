@@ -67,3 +67,18 @@ body:not(:has(.has-img)) .primary-btn {
   background-color: #ddd;
   color: #a3a3a3;
 }
+
+.hide-opacity .TextboxColor__opacity,
+.hide-opacity:focus .TextboxColor__opacity,
+  .hide-opacity:focus-visible .TextboxColor__opacity {
+  display: none !important;
+}
+
+.hide-opacity {
+  padding-left: 6px;
+  background-color: transparent;
+}
+
+.z-9 {
+  z-index: 9;
+}
