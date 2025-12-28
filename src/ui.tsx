@@ -19,22 +19,34 @@ import {
 } from "@create-figma-plugin/ui";
 import { emit, on } from "@create-figma-plugin/utilities";
 import { h } from "preact";
-import { useCallback, useState } from "preact/hooks";
+import { useCallback, useState, useEffect } from "preact/hooks";
 import "!./styles.css";
 
 import {
   CreateComponentSetHandler,
   CreateTextLogoHandler,
+  FrameInfo,
   GrabSelectionHandler,
   LogoConfig,
+  RequestTopLevelFramesHandler,
   SelectionInfo,
   SelectionUpdateHandler,
   TextLogoConfig,
+  TopLevelFramesHandler,
 } from "./types";
 
 function Plugin() {
   // Tab state
   const [activeTab, setActiveTab] = useState<string>("Select Vectors");
+
+  // Top-level frames state
+  const [topLevelFrames, setTopLevelFrames] = useState<FrameInfo[]>([]);
+  const [selectedFrameId, setSelectedFrameId] = useState<string>("");
+
+  // Validation state
+  const [productNameError, setProductNameError] = useState<boolean>(false);
+  const [textProductNameError, setTextProductNameError] =
+    useState<boolean>(false);
 
   // Selection state
   const [selectionA, setSelectionA] = useState<SelectionInfo | null>(null);
@@ -55,21 +67,16 @@ function Plugin() {
   const [backgroundOpacity, setBackgroundOpacity] = useState<number>(1);
   const [faviconHasBackground, setFaviconHasBackground] =
     useState<boolean>(false);
-  const [faviconBackgroundShape, setFaviconBackgroundShape] = useState<
-    "square" | "circle"
-  >("square");
-  const [bgVariantSource, setBgVariantSource] = useState<"A" | "B" | "C" | "D">(
-    "A"
-  );
-  const [lightVariantSource, setLightVariantSource] = useState<
-    "A" | "B" | "C" | "D"
-  >("A");
-  const [darkVariantSource, setDarkVariantSource] = useState<
-    "A" | "B" | "C" | "D"
-  >("A");
-  const [faviconVariantSource, setFaviconVariantSource] = useState<
-    "A" | "B" | "C" | "D"
-  >("B");
+  const [faviconBackgroundShape, setFaviconBackgroundShape] =
+    useState<"square" | "circle">("square");
+  const [bgVariantSource, setBgVariantSource] =
+    useState<"A" | "B" | "C" | "D">("A");
+  const [lightVariantSource, setLightVariantSource] =
+    useState<"A" | "B" | "C" | "D">("A");
+  const [darkVariantSource, setDarkVariantSource] =
+    useState<"A" | "B" | "C" | "D">("A");
+  const [faviconVariantSource, setFaviconVariantSource] =
+    useState<"A" | "B" | "C" | "D">("B");
   const [lightModeBlack, setLightModeBlack] = useState<boolean>(false);
   const [darkModeWhite, setDarkModeWhite] = useState<boolean>(false);
 
@@ -82,9 +89,8 @@ function Plugin() {
   const [textBackgroundOpacity, setTextBackgroundOpacity] = useState<number>(1);
   const [textFaviconHasBackground, setTextFaviconHasBackground] =
     useState<boolean>(true);
-  const [textFaviconBackgroundShape, setTextFaviconBackgroundShape] = useState<
-    "square" | "circle"
-  >("square");
+  const [textFaviconBackgroundShape, setTextFaviconBackgroundShape] =
+    useState<"square" | "circle">("square");
   const [textTextColor, setTextTextColor] = useState<string>("000000");
 
   // Listen for selection updates from main
@@ -114,6 +120,16 @@ function Plugin() {
       }
     }
   });
+
+  // Listen for top-level frames from main
+  on<TopLevelFramesHandler>("TOP_LEVEL_FRAMES", function (frames) {
+    setTopLevelFrames(frames);
+  });
+
+  // Request top-level frames on mount
+  useEffect(() => {
+    emit<RequestTopLevelFramesHandler>("REQUEST_TOP_LEVEL_FRAMES");
+  }, []);
 
   // Grab selection handlers
   const handleGrabSelectionA = useCallback(function () {
@@ -156,7 +172,9 @@ function Plugin() {
   // Create component set handler
   const handleCreateComponentSet = useCallback(
     function () {
-      if (!productName.trim() && !defaultProductName) {
+      // Validate required product name
+      if (!productName.trim()) {
+        setProductNameError(true);
         return;
       }
 
@@ -165,7 +183,7 @@ function Plugin() {
       }
 
       const config: LogoConfig = {
-        productName: productName.trim() || defaultProductName,
+        productName: productName.trim(),
         backgroundColor,
         backgroundOpacity,
         bgVariantSource,
@@ -180,6 +198,7 @@ function Plugin() {
         selectionBId: selectionB?.id || null,
         selectionCId: selectionC?.id || null,
         selectionDId: selectionD?.id || null,
+        targetFrameId: selectedFrameId || null,
       };
 
       emit<CreateComponentSetHandler>("CREATE_COMPONENT_SET", config);
@@ -200,14 +219,21 @@ function Plugin() {
       selectionB,
       selectionC,
       selectionD,
+      selectedFrameId,
     ]
   );
 
   // Create Text Logo handler
   const handleCreateTextLogo = useCallback(
     function () {
+      // Validate required product name
+      if (!textProductName.trim()) {
+        setTextProductNameError(true);
+        return;
+      }
+
       const config: TextLogoConfig = {
-        productName: textProductName.trim() || "Logo component set",
+        productName: textProductName.trim(),
         logoText: logoText.trim() || "Text logo",
         faviconText: faviconText.trim() || "T",
         backgroundColor: textBackgroundColor,
@@ -215,6 +241,7 @@ function Plugin() {
         faviconHasBackground: textFaviconHasBackground,
         faviconBackgroundShape: textFaviconBackgroundShape,
         textColor: textTextColor,
+        targetFrameId: selectedFrameId || null,
       };
       emit<CreateTextLogoHandler>("CREATE_TEXT_LOGO", config);
     },
@@ -227,6 +254,7 @@ function Plugin() {
       textFaviconHasBackground,
       textFaviconBackgroundShape,
       textTextColor,
+      selectedFrameId,
     ]
   );
 
@@ -235,6 +263,15 @@ function Plugin() {
     { value: "B", text: "Selection B" },
     { value: "C", text: "Selection C" },
     { value: "D", text: "Selection D" },
+  ];
+
+  // Target frame options for dropdown
+  const targetFrameOptions: Array<DropdownOption> = [
+    { value: "", text: "Current page (0,0)" },
+    ...topLevelFrames.map((frame) => ({
+      value: frame.id,
+      text: frame.name,
+    })),
   ];
 
   const faviconShapeOptions: Array<SegmentedControlOption> = [
@@ -298,6 +335,41 @@ function Plugin() {
 
       {activeTab === "Select Vectors" && (
         <div>
+          <Text>
+            <Muted>Component set name (required)</Muted>
+          </Text>
+          <VerticalSpace space="small" />
+          <Textbox
+            onValueInput={(value) => {
+              setProductName(value);
+              if (value.trim()) {
+                setProductNameError(false);
+              }
+            }}
+            value={productName}
+            placeholder="Enter component set name"
+            style={productNameError ? { border: "1px solid #f24822" } : {}}
+          />
+          {productNameError && (
+            <Text
+              style={{ color: "#f24822", fontSize: "11px", marginTop: "4px" }}
+            >
+              Component set name is required
+            </Text>
+          )}
+          <VerticalSpace space="medium" />
+
+          <Text>
+            <Muted>Target location</Muted>
+          </Text>
+          <VerticalSpace space="small" />
+          <Dropdown
+            options={targetFrameOptions}
+            value={selectedFrameId}
+            onChange={(e) => setSelectedFrameId(e.currentTarget.value)}
+          />
+          <VerticalSpace space="large" />
+
           <div
             style={{
               display: "flex",
@@ -375,13 +447,6 @@ function Plugin() {
               );
             })}
           </div>
-
-          <Textbox
-            onValueInput={setProductName}
-            value={productName}
-            placeholder="Component set name"
-          />
-          <VerticalSpace space="large" />
 
           <Text>
             <h2>Variant Configuration</h2>
@@ -535,13 +600,37 @@ function Plugin() {
       {activeTab === "Create Logotype" && (
         <div>
           <Text>
-            <Muted>Component set name</Muted>
+            <Muted>Component set name (required)</Muted>
           </Text>
           <VerticalSpace space="small" />
           <Textbox
-            onValueInput={setTextProductName}
+            onValueInput={(value) => {
+              setTextProductName(value);
+              if (value.trim()) {
+                setTextProductNameError(false);
+              }
+            }}
             value={textProductName}
-            placeholder="Logo component set"
+            placeholder="Enter component set name"
+            style={textProductNameError ? { border: "1px solid #f24822" } : {}}
+          />
+          {textProductNameError && (
+            <Text
+              style={{ color: "#f24822", fontSize: "11px", marginTop: "4px" }}
+            >
+              Component set name is required
+            </Text>
+          )}
+          <VerticalSpace space="medium" />
+
+          <Text>
+            <Muted>Target location</Muted>
+          </Text>
+          <VerticalSpace space="small" />
+          <Dropdown
+            options={targetFrameOptions}
+            value={selectedFrameId}
+            onChange={(e) => setSelectedFrameId(e.currentTarget.value)}
           />
           <VerticalSpace space="large" />
 

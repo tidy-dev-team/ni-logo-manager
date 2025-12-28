@@ -4,17 +4,42 @@ import {
   CloseHandler,
   CreateComponentSetHandler,
   CreateTextLogoHandler,
+  FrameInfo,
   GrabSelectionHandler,
   LogoConfig,
+  RequestTopLevelFramesHandler,
   SelectionInfo,
   SelectionUpdateHandler,
   TextLogoConfig,
+  TopLevelFramesHandler,
 } from "./types";
 
 // Note: Selection IDs are now passed directly in config from UI
 // We don't need to store them globally anymore
 
+// Helper: Get top-level frames from current page
+function getTopLevelFrames(): FrameInfo[] {
+  const frames: FrameInfo[] = [];
+  for (const node of figma.currentPage.children) {
+    if (node.type === "FRAME") {
+      frames.push({ id: node.id, name: node.name });
+    }
+  }
+  return frames;
+}
+
+// Helper: Send top-level frames to UI
+function sendTopLevelFrames(): void {
+  const frames = getTopLevelFrames();
+  emit<TopLevelFramesHandler>("TOP_LEVEL_FRAMES", frames);
+}
+
 export default function () {
+  // Handle request for top-level frames
+  on<RequestTopLevelFramesHandler>("REQUEST_TOP_LEVEL_FRAMES", function () {
+    sendTopLevelFrames();
+  });
+
   // Handle grabbing selections
   on<GrabSelectionHandler>(
     "GRAB_SELECTION",
@@ -60,7 +85,7 @@ export default function () {
   // Handle creating component set
   on<CreateComponentSetHandler>(
     "CREATE_COMPONENT_SET",
-    function (config: LogoConfig) {
+    async function (config: LogoConfig) {
       try {
         // Validation
         if (!config.productName.trim()) {
@@ -83,7 +108,9 @@ export default function () {
           // Favicon uses only the background element.
           // We don't require a source selection.
         } else {
-          sourceIds.push(resolveSelectionId(config.faviconVariantSource, config));
+          sourceIds.push(
+            resolveSelectionId(config.faviconVariantSource, config)
+          );
         }
 
         for (const id of sourceIds) {
@@ -149,13 +176,15 @@ export default function () {
           });
           variants.push(faviconVariant);
         } else {
-          const faviconVariant = createFaviconBackgroundComponent({
+          // Favicon WITHOUT background - just the logo vector
+          const faviconVariant = createVariant({
             width: 100,
             height: 100,
-            backgroundColor: config.backgroundColor,
-            backgroundOpacity: config.backgroundOpacity,
-            backgroundShape: config.faviconBackgroundShape,
+            sourceId: resolveSelectionId(config.faviconVariantSource, config)!,
+            backgroundColor: null, // No background
+            colorOverride: null,
             variantName: `Product=${config.productName}, Size=100x100-Favicon`,
+            padding: 20,
           });
           variants.push(faviconVariant);
         }
@@ -174,6 +203,13 @@ export default function () {
         componentSet.counterAxisSizingMode = "AUTO";
         componentSet.counterAxisAlignItems = "CENTER";
         componentSet.itemSpacing = 22;
+
+        // Place the component set in the target frame or at 0,0
+        await placeComponentSetInTarget(
+          componentSet,
+          config.targetFrameId,
+          config.productName
+        );
 
         // Position and zoom
         figma.viewport.scrollAndZoomIntoView([componentSet]);
@@ -241,7 +277,9 @@ export default function () {
           width: 100,
           height: 100,
           text: config.faviconText,
-          backgroundColor: config.faviconHasBackground ? config.backgroundColor : null,
+          backgroundColor: config.faviconHasBackground
+            ? config.backgroundColor
+            : null,
           backgroundOpacity: config.backgroundOpacity,
           backgroundShape: config.faviconBackgroundShape,
           textColor: hexToRgb(config.textColor),
@@ -265,6 +303,13 @@ export default function () {
         componentSet.counterAxisAlignItems = "CENTER";
         componentSet.itemSpacing = 22;
 
+        // Place the component set in the target frame or at 0,0
+        await placeComponentSetInTarget(
+          componentSet,
+          config.targetFrameId,
+          config.productName
+        );
+
         // Position and zoom
         figma.viewport.scrollAndZoomIntoView([componentSet]);
         figma.notify("Text logo component set created!");
@@ -286,6 +331,9 @@ export default function () {
     width: 320,
     height: 600,
   });
+
+  // Send top-level frames after UI is shown
+  sendTopLevelFrames();
 }
 
 function hasAnySelection(config: LogoConfig): boolean {
@@ -374,8 +422,15 @@ function createVariant(options: {
   // Get source node
   const sourceNode = figma.getNodeById(options.sourceId);
   if (!sourceNode || !("clone" in sourceNode)) {
+    console.error(
+      `[createVariant] Source node not found for ID: ${options.sourceId}`
+    );
     throw new Error("Source node not found or cannot be cloned");
   }
+
+  console.log(
+    `[createVariant] Found source node: ${sourceNode.name}, type: ${sourceNode.type}`
+  );
 
   // Create component
   const component = figma.createComponent();
@@ -415,16 +470,50 @@ function createVariant(options: {
 
   // Clone source and add to component
   const clone = sourceNode.clone();
+  console.log(
+    `[createVariant] Cloned node: ${clone.name}, type: ${clone.type}, width: ${
+      "width" in clone ? clone.width : "N/A"
+    }, height: ${"height" in clone ? clone.height : "N/A"}`
+  );
+
+  // Log original fills before any modifications
+  if ("fills" in clone && clone.fills !== figma.mixed) {
+    console.log(
+      `[createVariant] Clone fills before processing:`,
+      JSON.stringify(clone.fills)
+    );
+  }
+
+  // If the cloned node is a FRAME or GROUP, remove its background fill
+  // so only the actual content (vectors) is visible
+  if ("fills" in clone && clone.type === "FRAME") {
+    clone.fills = [];
+    console.log(`[createVariant] Removed background fill from ${clone.type}`);
+  }
 
   // Scale to fit with padding
   const padding = options.padding ?? 16;
   scaleToFit(clone, options.width, options.height, padding);
+  console.log(
+    `[createVariant] After scaleToFit: width: ${
+      "width" in clone ? clone.width : "N/A"
+    }, height: ${"height" in clone ? clone.height : "N/A"}`
+  );
 
   // Center in parent
   centerInParent(clone, options.width, options.height);
+  console.log(
+    `[createVariant] After centerInParent: x: ${
+      "x" in clone ? clone.x : "N/A"
+    }, y: ${"y" in clone ? clone.y : "N/A"}`
+  );
 
   // Apply color override if specified
   if (options.colorOverride) {
+    console.log(
+      `[createVariant] Applying color override:`,
+      options.colorOverride
+    );
     applyColorToAllFills(clone, options.colorOverride);
   }
 
@@ -434,12 +523,25 @@ function createVariant(options: {
   // Remove hidden default fills (Figma adds #FFFFFF by default)
   removeHiddenFills(clone);
 
+  // Log fills after processing
+  if ("fills" in clone && clone.fills !== figma.mixed) {
+    console.log(
+      `[createVariant] Clone fills after processing:`,
+      JSON.stringify(clone.fills)
+    );
+  }
+
   // Debug: confirm constraints and fills applied
   logNodeState("bg-variant-clone", clone);
 
   // Append to component (type assertion since we know it's a scene node)
   if ("type" in clone && clone.type !== "PAGE") {
     component.appendChild(clone as SceneNode);
+    console.log(
+      `[createVariant] Appended clone to component. Component children count: ${component.children.length}`
+    );
+  } else {
+    console.error(`[createVariant] Could not append clone - invalid type`);
   }
 
   return component;
@@ -672,4 +774,216 @@ function logNodeState(label: string, node: BaseNode): void {
   if ("fills" in node && node.fills !== figma.mixed) {
     console.log(`[${label}] fills`, (node as GeometryMixin).fills);
   }
+}
+
+// Helper: Get the first letter of a product name (uppercase)
+function getVariantGroupLetter(productName: string): string {
+  const trimmed = productName.trim();
+  if (!trimmed) return "A";
+  return trimmed.charAt(0).toUpperCase();
+}
+
+// Helper: Find variant group by letter in content frame
+function findVariantGroup(
+  contentFrame: FrameNode,
+  letter: string
+): FrameNode | null {
+  for (const child of contentFrame.children) {
+    if (child.type === "FRAME" && child.name.toUpperCase() === letter) {
+      return child;
+    }
+  }
+  return null;
+}
+
+// Helper: Get all variant groups (single letter frames) from content frame
+function getVariantGroups(contentFrame: FrameNode): FrameNode[] {
+  const groups: FrameNode[] = [];
+  for (const child of contentFrame.children) {
+    // A variant group is a frame with a single uppercase letter name
+    if (child.type === "FRAME" && /^[A-Z]$/i.test(child.name.trim())) {
+      groups.push(child);
+    }
+  }
+  return groups;
+}
+
+// Helper: Find or create the "content" frame inside the target frame
+function findOrCreateContentFrame(targetFrame: FrameNode): FrameNode {
+  // Look for existing "content" frame
+  for (const child of targetFrame.children) {
+    if (child.type === "FRAME" && child.name.toLowerCase() === "content") {
+      return child;
+    }
+  }
+
+  // Create new content frame if not found
+  const contentFrame = figma.createFrame();
+  contentFrame.name = "content";
+  contentFrame.fills = []; // Transparent
+
+  // Set up auto-layout (horizontal for variant groups)
+  contentFrame.layoutMode = "HORIZONTAL";
+  contentFrame.primaryAxisSizingMode = "AUTO";
+  contentFrame.counterAxisSizingMode = "AUTO";
+  contentFrame.itemSpacing = 120;
+
+  targetFrame.appendChild(contentFrame);
+  return contentFrame;
+}
+
+// Helper: Create a variant group frame with label
+async function createVariantGroup(letter: string): Promise<FrameNode> {
+  // Load font for the label
+  await figma.loadFontAsync({ family: "Inter", style: "Bold" });
+
+  const group = figma.createFrame();
+  group.name = letter;
+  group.fills = [
+    { type: "SOLID", color: { r: 0.9, g: 0.95, b: 0.92 }, opacity: 1 },
+  ]; // Light green default
+  group.cornerRadius = 16;
+
+  // Set up auto-layout (vertical)
+  group.layoutMode = "VERTICAL";
+  group.primaryAxisSizingMode = "AUTO";
+  group.counterAxisSizingMode = "AUTO";
+  group.paddingTop = 32;
+  group.paddingBottom = 32;
+  group.paddingLeft = 32;
+  group.paddingRight = 32;
+  group.itemSpacing = 32;
+
+  // Create label text
+  const label = figma.createText();
+  label.fontName = { family: "Inter", style: "Bold" };
+  label.fontSize = 180;
+  label.characters = letter;
+  label.fills = [{ type: "SOLID", color: { r: 0, g: 0, b: 0 } }];
+  label.name = letter;
+
+  group.appendChild(label);
+
+  return group;
+}
+
+// Helper: Insert variant group at correct alphabetical position
+function insertVariantGroupAlphabetically(
+  targetFrame: FrameNode,
+  newGroup: FrameNode,
+  letter: string
+): void {
+  const existingGroups = getVariantGroups(targetFrame);
+
+  // Find the correct insertion index
+  let insertIndex = 0;
+  for (let i = 0; i < existingGroups.length; i++) {
+    const existingLetter = existingGroups[i].name.toUpperCase();
+    if (letter.toUpperCase() < existingLetter) {
+      break;
+    }
+    insertIndex = i + 1;
+  }
+
+  // Find the actual child index in the parent
+  if (insertIndex === 0) {
+    // Insert at the beginning (after any non-group children like titles)
+    // Find first variant group and insert before it
+    const firstGroup = existingGroups[0];
+    if (firstGroup) {
+      const firstGroupIndex = targetFrame.children.indexOf(firstGroup);
+      targetFrame.insertChild(firstGroupIndex, newGroup);
+    } else {
+      targetFrame.appendChild(newGroup);
+    }
+  } else if (insertIndex >= existingGroups.length) {
+    // Insert at the end
+    targetFrame.appendChild(newGroup);
+  } else {
+    // Insert before the group at insertIndex
+    const groupAtIndex = existingGroups[insertIndex];
+    const childIndex = targetFrame.children.indexOf(groupAtIndex);
+    targetFrame.insertChild(childIndex, newGroup);
+  }
+}
+
+// Helper: Insert component set at correct alphabetical position within variant group
+function insertComponentSetAlphabetically(
+  variantGroup: FrameNode,
+  componentSet: ComponentSetNode,
+  productName: string
+): void {
+  // Get existing component sets (skip the label text)
+  const existingSets: SceneNode[] = [];
+  for (const child of variantGroup.children) {
+    if (child.type === "COMPONENT_SET") {
+      existingSets.push(child);
+    }
+  }
+
+  // Find the correct insertion index
+  let insertIndex = 0;
+  for (let i = 0; i < existingSets.length; i++) {
+    if (productName.toLowerCase() < existingSets[i].name.toLowerCase()) {
+      break;
+    }
+    insertIndex = i + 1;
+  }
+
+  // Move component set to variant group first
+  variantGroup.appendChild(componentSet);
+
+  // Now reorder within the group
+  // The label should be first, then component sets in alphabetical order
+  if (insertIndex < existingSets.length) {
+    // Find the position of the set we want to insert before
+    const targetSet = existingSets[insertIndex];
+    const targetIndex = variantGroup.children.indexOf(targetSet);
+    // Move our new set to that position
+    variantGroup.insertChild(targetIndex, componentSet);
+  }
+  // If insertIndex >= existingSets.length, it's already appended at the end
+}
+
+// Helper: Place component set in target frame with proper organization
+async function placeComponentSetInTarget(
+  componentSet: ComponentSetNode,
+  targetFrameId: string | null,
+  productName: string
+): Promise<void> {
+  // If no target frame, place at 0,0 on current page
+  if (!targetFrameId) {
+    componentSet.x = 0;
+    componentSet.y = 0;
+    return;
+  }
+
+  // Get target frame
+  const targetNode = figma.getNodeById(targetFrameId);
+  if (!targetNode || targetNode.type !== "FRAME") {
+    componentSet.x = 0;
+    componentSet.y = 0;
+    figma.notify("Target frame not found, placing at origin");
+    return;
+  }
+
+  const targetFrame = targetNode as FrameNode;
+  const letter = getVariantGroupLetter(productName);
+
+  // Find or create the "content" frame inside the target
+  const contentFrame = findOrCreateContentFrame(targetFrame);
+
+  // Find or create variant group inside the content frame
+  let variantGroup = findVariantGroup(contentFrame, letter);
+
+  if (!variantGroup) {
+    // Create new variant group
+    variantGroup = await createVariantGroup(letter);
+
+    // Insert at correct alphabetical position inside content frame
+    insertVariantGroupAlphabetically(contentFrame, variantGroup, letter);
+  }
+
+  // Insert component set alphabetically within the variant group
+  insertComponentSetAlphabetically(variantGroup, componentSet, productName);
 }
