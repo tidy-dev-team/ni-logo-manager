@@ -83,3 +83,33 @@ export interface TopLevelFramesHandler extends EventHandler {
   name: "TOP_LEVEL_FRAMES";
   handler: (frames: FrameInfo[]) => void;
 }
+
+// Settings to persist between sessions
+export interface PluginSettings {
+  bgVariantSource: "A" | "B" | "C" | "D";
+  lightVariantSource: "A" | "B" | "C" | "D";
+  darkVariantSource: "A" | "B" | "C" | "D";
+  faviconVariantSource: "A" | "B" | "C" | "D";
+  lightModeBlack: boolean;
+  darkModeWhite: boolean;
+  faviconHasBackground: boolean;
+  faviconBackgroundShape: "square" | "circle";
+}
+
+// Event handler for loading settings
+export interface LoadSettingsHandler extends EventHandler {
+  name: "LOAD_SETTINGS";
+  handler: (settings: PluginSettings) => void;
+}
+
+// Event handler for saving settings
+export interface SaveSettingsHandler extends EventHandler {
+  name: "SAVE_SETTINGS";
+  handler: (settings: PluginSettings) => void;
+}
+
+// Event handler for requesting settings
+export interface RequestSettingsHandler extends EventHandler {
+  name: "REQUEST_SETTINGS";
+  handler: () => void;
+}
