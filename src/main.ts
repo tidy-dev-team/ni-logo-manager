@@ -842,7 +842,7 @@ async function createVariantGroup(letter: string): Promise<FrameNode> {
   group.fills = [
     { type: "SOLID", color: { r: 0.9, g: 0.95, b: 0.92 }, opacity: 1 },
   ]; // Light green default
-  group.cornerRadius = 16;
+  group.cornerRadius = 40;
 
   // Set up auto-layout (vertical)
   group.layoutMode = "VERTICAL";
