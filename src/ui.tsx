@@ -27,8 +27,12 @@ import {
   CreateTextLogoHandler,
   FrameInfo,
   GrabSelectionHandler,
+  LoadSettingsHandler,
   LogoConfig,
+  PluginSettings,
+  RequestSettingsHandler,
   RequestTopLevelFramesHandler,
+  SaveSettingsHandler,
   SelectionInfo,
   SelectionUpdateHandler,
   TextLogoConfig,
@@ -126,10 +130,55 @@ function Plugin() {
     setTopLevelFrames(frames);
   });
 
-  // Request top-level frames on mount
+  // Listen for settings from main
+  on<LoadSettingsHandler>("LOAD_SETTINGS", function (settings) {
+    setBgVariantSource(settings.bgVariantSource);
+    setLightVariantSource(settings.lightVariantSource);
+    setDarkVariantSource(settings.darkVariantSource);
+    setFaviconVariantSource(settings.faviconVariantSource);
+    setLightModeBlack(settings.lightModeBlack);
+    setDarkModeWhite(settings.darkModeWhite);
+    setFaviconHasBackground(settings.faviconHasBackground);
+    setFaviconBackgroundShape(settings.faviconBackgroundShape);
+  });
+
+  // Request top-level frames and settings on mount
   useEffect(() => {
     emit<RequestTopLevelFramesHandler>("REQUEST_TOP_LEVEL_FRAMES");
+    emit<RequestSettingsHandler>("REQUEST_SETTINGS");
   }, []);
+
+  // Save settings when variant configuration changes
+  const saveSettings = useCallback(
+    function () {
+      const settings: PluginSettings = {
+        bgVariantSource,
+        lightVariantSource,
+        darkVariantSource,
+        faviconVariantSource,
+        lightModeBlack,
+        darkModeWhite,
+        faviconHasBackground,
+        faviconBackgroundShape,
+      };
+      emit<SaveSettingsHandler>("SAVE_SETTINGS", settings);
+    },
+    [
+      bgVariantSource,
+      lightVariantSource,
+      darkVariantSource,
+      faviconVariantSource,
+      lightModeBlack,
+      darkModeWhite,
+      faviconHasBackground,
+      faviconBackgroundShape,
+    ]
+  );
+
+  // Save settings whenever they change
+  useEffect(() => {
+    saveSettings();
+  }, [saveSettings]);
 
   // Grab selection handlers
   const handleGrabSelectionA = useCallback(function () {

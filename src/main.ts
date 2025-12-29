@@ -1,4 +1,11 @@
-import { emit, on, once, showUI } from "@create-figma-plugin/utilities";
+import {
+  emit,
+  loadSettingsAsync,
+  on,
+  once,
+  saveSettingsAsync,
+  showUI,
+} from "@create-figma-plugin/utilities";
 
 import {
   CloseHandler,
@@ -6,13 +13,29 @@ import {
   CreateTextLogoHandler,
   FrameInfo,
   GrabSelectionHandler,
+  LoadSettingsHandler,
   LogoConfig,
+  PluginSettings,
+  RequestSettingsHandler,
   RequestTopLevelFramesHandler,
+  SaveSettingsHandler,
   SelectionInfo,
   SelectionUpdateHandler,
   TextLogoConfig,
   TopLevelFramesHandler,
 } from "./types";
+
+// Default settings
+const defaultSettings: PluginSettings = {
+  bgVariantSource: "A",
+  lightVariantSource: "A",
+  darkVariantSource: "A",
+  faviconVariantSource: "B",
+  lightModeBlack: false,
+  darkModeWhite: false,
+  faviconHasBackground: false,
+  faviconBackgroundShape: "square",
+};
 
 // Note: Selection IDs are now passed directly in config from UI
 // We don't need to store them globally anymore
@@ -38,6 +61,17 @@ export default function () {
   // Handle request for top-level frames
   on<RequestTopLevelFramesHandler>("REQUEST_TOP_LEVEL_FRAMES", function () {
     sendTopLevelFrames();
+  });
+
+  // Handle request for settings
+  on<RequestSettingsHandler>("REQUEST_SETTINGS", async function () {
+    const settings = await loadSettingsAsync(defaultSettings);
+    emit<LoadSettingsHandler>("LOAD_SETTINGS", settings);
+  });
+
+  // Handle saving settings
+  on<SaveSettingsHandler>("SAVE_SETTINGS", async function (settings) {
+    await saveSettingsAsync(settings);
   });
 
   // Handle grabbing selections
@@ -840,8 +874,8 @@ async function createVariantGroup(letter: string): Promise<FrameNode> {
   const group = figma.createFrame();
   group.name = letter;
   group.fills = [
-    { type: "SOLID", color: { r: 0.9, g: 0.95, b: 0.92 }, opacity: 1 },
-  ]; // Light green default
+    { type: "SOLID", color: { r: 0.725, g: 0.725, b: 0.725 }, opacity: 1 },
+  ]; // #B9B9B9 gray default
   group.cornerRadius = 40;
 
   // Set up auto-layout (vertical)
