@@ -67,16 +67,21 @@ function Plugin() {
   const [backgroundOpacity, setBackgroundOpacity] = useState<number>(1);
   const [faviconHasBackground, setFaviconHasBackground] =
     useState<boolean>(false);
-  const [faviconBackgroundShape, setFaviconBackgroundShape] =
-    useState<"square" | "circle">("square");
-  const [bgVariantSource, setBgVariantSource] =
-    useState<"A" | "B" | "C" | "D">("A");
-  const [lightVariantSource, setLightVariantSource] =
-    useState<"A" | "B" | "C" | "D">("A");
-  const [darkVariantSource, setDarkVariantSource] =
-    useState<"A" | "B" | "C" | "D">("A");
-  const [faviconVariantSource, setFaviconVariantSource] =
-    useState<"A" | "B" | "C" | "D">("B");
+  const [faviconBackgroundShape, setFaviconBackgroundShape] = useState<
+    "square" | "circle"
+  >("square");
+  const [bgVariantSource, setBgVariantSource] = useState<"A" | "B" | "C" | "D">(
+    "A"
+  );
+  const [lightVariantSource, setLightVariantSource] = useState<
+    "A" | "B" | "C" | "D"
+  >("A");
+  const [darkVariantSource, setDarkVariantSource] = useState<
+    "A" | "B" | "C" | "D"
+  >("A");
+  const [faviconVariantSource, setFaviconVariantSource] = useState<
+    "A" | "B" | "C" | "D"
+  >("B");
   const [lightModeBlack, setLightModeBlack] = useState<boolean>(false);
   const [darkModeWhite, setDarkModeWhite] = useState<boolean>(false);
 
@@ -89,8 +94,9 @@ function Plugin() {
   const [textBackgroundOpacity, setTextBackgroundOpacity] = useState<number>(1);
   const [textFaviconHasBackground, setTextFaviconHasBackground] =
     useState<boolean>(true);
-  const [textFaviconBackgroundShape, setTextFaviconBackgroundShape] =
-    useState<"square" | "circle">("square");
+  const [textFaviconBackgroundShape, setTextFaviconBackgroundShape] = useState<
+    "square" | "circle"
+  >("square");
   const [textTextColor, setTextTextColor] = useState<string>("000000");
 
   // Listen for selection updates from main
@@ -434,8 +440,7 @@ function Plugin() {
                     <div style={{ width: "138px" }}>
                       <Button
                         onClick={selection ? row.handleClear : row.handleGrab}
-                        secondary
-                        danger={selection ? true : false}
+                        secondary={selection ? true : false}
                         fullWidth
                       >
                         {selection ? "Clear Selection" : "Grab Selection"}
