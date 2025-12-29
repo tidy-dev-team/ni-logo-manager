@@ -436,7 +436,7 @@ function Plugin() {
               const preview = row.preview;
               const selection = row.selection;
               return (
-                <div key={row.key}>
+                <div key={row.key} style={{ flexGrow: 1 }}>
                   <Text>
                     <Bold>{row.label}</Bold>
                   </Text>
@@ -450,15 +450,19 @@ function Plugin() {
                     }}
                   >
                     <div
-                      style={{ flex: 1, display: "flex", alignItems: "center" }}
+                      style={{
+                        flexGrow: 1,
+                        width: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                      }}
                     >
                       {preview ? (
                         <img
-                          className={"has-img"}
+                          className={"has-img card-width"}
                           src={preview || undefined}
                           alt={selection?.name || row.label}
                           style={{
-                            width: "138px",
                             height: "60px",
                             objectFit: "contain",
                             border: "1px solid #e6e6e6",
@@ -469,8 +473,8 @@ function Plugin() {
                         />
                       ) : (
                         <Text
+                          className={"card-width"}
                           style={{
-                            width: "138px",
                             height: "60px",
                             display: "flex",
                             justifyContent: "center",
@@ -486,7 +490,7 @@ function Plugin() {
                         </Text>
                       )}
                     </div>
-                    <div style={{ width: "138px" }}>
+                    <div className={"card-width"}>
                       <Button
                         onClick={selection ? row.handleClear : row.handleGrab}
                         secondary={selection ? true : false}

@@ -1,6 +1,7 @@
 declare const styles: {
   readonly "TextboxColor__opacity": string;
   readonly "card": string;
+  readonly "card-width": string;
   readonly "column": string;
   readonly "flex-me": string;
   readonly "has-img": string;

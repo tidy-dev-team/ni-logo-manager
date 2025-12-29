@@ -1,7 +1,7 @@
 html, body {
   scroll-behavior: smooth;
   scroll-snap-type: y mandatory;
-  overflow-y: scroll;
+  overflow-y: auto;
 }
 
 body div:has(label) {
@@ -22,6 +22,12 @@ label[class*="_tab_"] div {
 h2 {
   margin-top: 20px;
   margin-bottom: 12px;
+}
+
+.card-width {
+  /* width: calc(50vw - 30px); */
+  width: 100%;
+  flex-grow: 1;
 }
 
 button {
