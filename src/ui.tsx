@@ -643,7 +643,10 @@ function Plugin() {
             }}
             className={"primary-btn"}
             fullWidth
-            onClick={handleCreateComponentSet}
+            onClick={() => {
+              handleCreateComponentSet();
+              window.scrollTo(0, 0);
+            }}
           >
             Create component set
           </Button>

@@ -1,3 +1,9 @@
+html, body {
+  scroll-behavior: smooth;
+  scroll-snap-type: y mandatory;
+  overflow-y: scroll;
+}
+
 body div:has(label) {
   margin-bottom: 12px;
   gap: 4px;
