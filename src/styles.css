@@ -29,6 +29,26 @@ h2 {
   flex-grow: 1;
 }
 
+.inner-card {
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  border-radius: 6px;
+  transform: none;
+  background-color: #f7f7f7ff;
+  border: 1px solid #f1f1f1;
+}
+
+.has-img {
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
+  height: 60px;
+  scale: 0.9;
+}
+
 button {
   cursor: pointer !important;
 }

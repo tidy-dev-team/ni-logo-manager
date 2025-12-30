@@ -6,6 +6,7 @@ declare const styles: {
   readonly "flex-me": string;
   readonly "has-img": string;
   readonly "hide-opacity": string;
+  readonly "inner-card": string;
   readonly "primary-btn": string;
   readonly "z-9": string;
 };

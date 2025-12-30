@@ -450,6 +450,7 @@ function Plugin() {
                     }}
                   >
                     <div
+                      className={"inner-card"}
                       style={{
                         flexGrow: 1,
                         width: "100%",
@@ -458,34 +459,14 @@ function Plugin() {
                       }}
                     >
                       {preview ? (
-                        <img
+                        <div
                           className={"has-img card-width"}
-                          src={preview || undefined}
-                          alt={selection?.name || row.label}
                           style={{
-                            height: "60px",
-                            objectFit: "contain",
-                            border: "1px solid #e6e6e6",
-                            padding: "4px",
-                            borderRadius: "6px",
-                            backgroundColor: "var(--figma-color-bg)",
+                            backgroundImage: `url('${preview}')`,
                           }}
-                        />
+                        ></div>
                       ) : (
-                        <Text
-                          className={"card-width"}
-                          style={{
-                            height: "60px",
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            textAlign: "center",
-                            borderRadius: "6px",
-                            transform: "none",
-                            backgroundColor: "#f7f7f7ff",
-                            border: "1px solid #f1f1f1ff",
-                          }}
-                        >
+                        <Text className={"card-width"}>
                           <Muted className={"no-img"}>None selected</Muted>
                         </Text>
                       )}
