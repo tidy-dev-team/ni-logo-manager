@@ -25,7 +25,6 @@ h2 {
 }
 
 .card-width {
-  /* width: calc(50vw - 30px); */
   width: 100%;
   flex-grow: 1;
 }
