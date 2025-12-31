@@ -60,7 +60,7 @@ button:hover {
 div[class*="_segmentedControl_"] {
   width: fit-content;
   margin-bottom: 0 !important;
-  box-shadow: 0 0 0 1px #e6e6e6 inset;
+  box-shadow: 0 0 0 1px var(--figma-color-border) inset;
 }
 
 body div.card {
@@ -112,4 +112,25 @@ body:not(:has(.has-img)) .primary-btn {
 
 .z-9 {
   z-index: 9;
+}
+
+@media (prefers-color-scheme:dark) {
+  .inner-card {
+    background-color: #383838;
+    border: 1px solid #464646;
+  }
+  
+  div.card label[class*=_checkbox_] div[class*=_box_], div[class*=_dropdown_] {
+    background-color: #565656;
+  }
+  
+  body div.card {
+    background-color: #383838;
+    border: 1px solid #464646;
+  }
+  
+  body:not(:has(.has-img)) .primary-btn {
+    background-color: #464646;
+    color: #7b7b7b;
+  }
 }
