@@ -2,7 +2,6 @@ import {
   Bold,
   Button,
   Checkbox,
-  Columns,
   Container,
   Dropdown,
   DropdownOption,
@@ -37,11 +36,12 @@ import {
   SelectionUpdateHandler,
   TextLogoConfig,
   TopLevelFramesHandler,
+  VariantSlot,
 } from "./types";
 
 function Plugin() {
   // Tab state
-  const [activeTab, setActiveTab] = useState<string>("Select Vectors");
+  const [activeTab, setActiveTab] = useState<string>("Vector Logo");
 
   // Top-level frames state
   const [topLevelFrames, setTopLevelFrames] = useState<FrameInfo[]>([]);
@@ -52,17 +52,20 @@ function Plugin() {
   const [textProductNameError, setTextProductNameError] =
     useState<boolean>(false);
 
-  // Selection state
-  const [selectionA, setSelectionA] = useState<SelectionInfo | null>(null);
-  const [selectionB, setSelectionB] = useState<SelectionInfo | null>(null);
-  const [selectionC, setSelectionC] = useState<SelectionInfo | null>(null);
-  const [selectionD, setSelectionD] = useState<SelectionInfo | null>(null);
+  // Selection state - one per variant
+  const [bgSelection, setBgSelection] = useState<SelectionInfo | null>(null);
+  const [lightSelection, setLightSelection] =
+    useState<SelectionInfo | null>(null);
+  const [darkSelection, setDarkSelection] =
+    useState<SelectionInfo | null>(null);
+  const [faviconSelection, setFaviconSelection] =
+    useState<SelectionInfo | null>(null);
 
-  // Preview image URLs
-  const [previewA, setPreviewA] = useState<string | null>(null);
-  const [previewB, setPreviewB] = useState<string | null>(null);
-  const [previewC, setPreviewC] = useState<string | null>(null);
-  const [previewD, setPreviewD] = useState<string | null>(null);
+  // Preview image URLs - one per variant
+  const [bgPreview, setBgPreview] = useState<string | null>(null);
+  const [lightPreview, setLightPreview] = useState<string | null>(null);
+  const [darkPreview, setDarkPreview] = useState<string | null>(null);
+  const [faviconPreview, setFaviconPreview] = useState<string | null>(null);
 
   // Logo configuration state
   const defaultProductName = "Logo component set";
@@ -71,21 +74,8 @@ function Plugin() {
   const [backgroundOpacity, setBackgroundOpacity] = useState<number>(1);
   const [faviconHasBackground, setFaviconHasBackground] =
     useState<boolean>(false);
-  const [faviconBackgroundShape, setFaviconBackgroundShape] = useState<
-    "square" | "circle"
-  >("square");
-  const [bgVariantSource, setBgVariantSource] = useState<"A" | "B" | "C" | "D">(
-    "A"
-  );
-  const [lightVariantSource, setLightVariantSource] = useState<
-    "A" | "B" | "C" | "D"
-  >("A");
-  const [darkVariantSource, setDarkVariantSource] = useState<
-    "A" | "B" | "C" | "D"
-  >("A");
-  const [faviconVariantSource, setFaviconVariantSource] = useState<
-    "A" | "B" | "C" | "D"
-  >("B");
+  const [faviconBackgroundShape, setFaviconBackgroundShape] =
+    useState<"square" | "circle">("square");
   const [lightModeBlack, setLightModeBlack] = useState<boolean>(false);
   const [darkModeWhite, setDarkModeWhite] = useState<boolean>(false);
 
@@ -98,38 +88,40 @@ function Plugin() {
   const [textBackgroundOpacity, setTextBackgroundOpacity] = useState<number>(1);
   const [textFaviconHasBackground, setTextFaviconHasBackground] =
     useState<boolean>(true);
-  const [textFaviconBackgroundShape, setTextFaviconBackgroundShape] = useState<
-    "square" | "circle"
-  >("square");
+  const [textFaviconBackgroundShape, setTextFaviconBackgroundShape] =
+    useState<"square" | "circle">("square");
   const [textTextColor, setTextTextColor] = useState<string>("000000");
 
   // Listen for selection updates from main
-  on<SelectionUpdateHandler>("SELECTION_UPDATE", function (slot, info) {
-    if (info && info.imageData) {
-      let binary = "";
-      const bytes = new Uint8Array(info.imageData);
-      const len = bytes.byteLength;
-      for (let i = 0; i < len; i++) {
-        binary += String.fromCharCode(bytes[i]);
-      }
-      const base64 = btoa(binary);
-      const dataUrl = `data:image/png;base64,${base64}`;
+  on<SelectionUpdateHandler>(
+    "SELECTION_UPDATE",
+    function (slot: VariantSlot, info) {
+      if (info && info.imageData) {
+        let binary = "";
+        const bytes = new Uint8Array(info.imageData);
+        const len = bytes.byteLength;
+        for (let i = 0; i < len; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        const base64 = btoa(binary);
+        const dataUrl = `data:image/png;base64,${base64}`;
 
-      if (slot === "A") {
-        setSelectionA(info);
-        setPreviewA(dataUrl);
-      } else if (slot === "B") {
-        setSelectionB(info);
-        setPreviewB(dataUrl);
-      } else if (slot === "C") {
-        setSelectionC(info);
-        setPreviewC(dataUrl);
-      } else if (slot === "D") {
-        setSelectionD(info);
-        setPreviewD(dataUrl);
+        if (slot === "bg") {
+          setBgSelection(info);
+          setBgPreview(dataUrl);
+        } else if (slot === "light") {
+          setLightSelection(info);
+          setLightPreview(dataUrl);
+        } else if (slot === "dark") {
+          setDarkSelection(info);
+          setDarkPreview(dataUrl);
+        } else if (slot === "favicon") {
+          setFaviconSelection(info);
+          setFaviconPreview(dataUrl);
+        }
       }
     }
-  });
+  );
 
   // Listen for top-level frames from main
   on<TopLevelFramesHandler>("TOP_LEVEL_FRAMES", function (frames) {
@@ -138,10 +130,6 @@ function Plugin() {
 
   // Listen for settings from main
   on<LoadSettingsHandler>("LOAD_SETTINGS", function (settings) {
-    setBgVariantSource(settings.bgVariantSource);
-    setLightVariantSource(settings.lightVariantSource);
-    setDarkVariantSource(settings.darkVariantSource);
-    setFaviconVariantSource(settings.faviconVariantSource);
     setLightModeBlack(settings.lightModeBlack);
     setDarkModeWhite(settings.darkModeWhite);
     setFaviconHasBackground(settings.faviconHasBackground);
@@ -158,10 +146,6 @@ function Plugin() {
   const saveSettings = useCallback(
     function () {
       const settings: PluginSettings = {
-        bgVariantSource,
-        lightVariantSource,
-        darkVariantSource,
-        faviconVariantSource,
         lightModeBlack,
         darkModeWhite,
         faviconHasBackground,
@@ -170,10 +154,6 @@ function Plugin() {
       emit<SaveSettingsHandler>("SAVE_SETTINGS", settings);
     },
     [
-      bgVariantSource,
-      lightVariantSource,
-      darkVariantSource,
-      faviconVariantSource,
       lightModeBlack,
       darkModeWhite,
       faviconHasBackground,
@@ -186,42 +166,30 @@ function Plugin() {
     saveSettings();
   }, [saveSettings]);
 
-  // Grab selection handlers
-  const handleGrabSelectionA = useCallback(function () {
-    emit<GrabSelectionHandler>("GRAB_SELECTION", "A");
+  // Grab selection handlers - one per variant
+  const handleGrabSelection = useCallback(function (slot: VariantSlot) {
+    emit<GrabSelectionHandler>("GRAB_SELECTION", slot);
   }, []);
 
-  const handleGrabSelectionB = useCallback(function () {
-    emit<GrabSelectionHandler>("GRAB_SELECTION", "B");
+  // Clear selection handlers - one per variant
+  const handleClearBg = useCallback(function () {
+    setBgSelection(null);
+    setBgPreview(null);
   }, []);
 
-  const handleGrabSelectionC = useCallback(function () {
-    emit<GrabSelectionHandler>("GRAB_SELECTION", "C");
+  const handleClearLight = useCallback(function () {
+    setLightSelection(null);
+    setLightPreview(null);
   }, []);
 
-  const handleGrabSelectionD = useCallback(function () {
-    emit<GrabSelectionHandler>("GRAB_SELECTION", "D");
+  const handleClearDark = useCallback(function () {
+    setDarkSelection(null);
+    setDarkPreview(null);
   }, []);
 
-  // Clear selection handlers
-  const handleClearSelectionA = useCallback(function () {
-    setSelectionA(null);
-    setPreviewA(null);
-  }, []);
-
-  const handleClearSelectionB = useCallback(function () {
-    setSelectionB(null);
-    setPreviewB(null);
-  }, []);
-
-  const handleClearSelectionC = useCallback(function () {
-    setSelectionC(null);
-    setPreviewC(null);
-  }, []);
-
-  const handleClearSelectionD = useCallback(function () {
-    setSelectionD(null);
-    setPreviewD(null);
+  const handleClearFavicon = useCallback(function () {
+    setFaviconSelection(null);
+    setFaviconPreview(null);
   }, []);
 
   // Create component set handler
@@ -233,7 +201,12 @@ function Plugin() {
         return;
       }
 
-      if (!selectionA && !selectionB && !selectionC && !selectionD) {
+      if (
+        !bgSelection &&
+        !lightSelection &&
+        !darkSelection &&
+        !faviconSelection
+      ) {
         return;
       }
 
@@ -241,18 +214,14 @@ function Plugin() {
         productName: productName.trim(),
         backgroundColor,
         backgroundOpacity,
-        bgVariantSource,
-        lightVariantSource,
-        darkVariantSource,
-        faviconVariantSource,
         faviconHasBackground,
         faviconBackgroundShape,
         lightModeBlack,
         darkModeWhite,
-        selectionAId: selectionA?.id || null,
-        selectionBId: selectionB?.id || null,
-        selectionCId: selectionC?.id || null,
-        selectionDId: selectionD?.id || null,
+        bgSelectionId: bgSelection?.id || null,
+        lightSelectionId: lightSelection?.id || null,
+        darkSelectionId: darkSelection?.id || null,
+        faviconSelectionId: faviconSelection?.id || null,
         targetFrameId: selectedFrameId || null,
       };
 
@@ -262,18 +231,14 @@ function Plugin() {
       productName,
       backgroundColor,
       backgroundOpacity,
-      bgVariantSource,
-      lightVariantSource,
-      darkVariantSource,
-      faviconVariantSource,
       faviconHasBackground,
       faviconBackgroundShape,
       lightModeBlack,
       darkModeWhite,
-      selectionA,
-      selectionB,
-      selectionC,
-      selectionD,
+      bgSelection,
+      lightSelection,
+      darkSelection,
+      faviconSelection,
       selectedFrameId,
     ]
   );
@@ -313,11 +278,18 @@ function Plugin() {
     ]
   );
 
-  const sourceOptions: Array<DropdownOption> = [
-    { value: "A", text: "Selection A" },
-    { value: "B", text: "Selection B" },
-    { value: "C", text: "Selection C" },
-    { value: "D", text: "Selection D" },
+  const faviconShapeOptions: Array<SegmentedControlOption> = [
+    { value: "square", children: "Square" },
+    { value: "circle", children: "Circle" },
+  ];
+
+  const hasAllVectorSelections = Boolean(
+    bgSelection && lightSelection && darkSelection && faviconSelection
+  );
+
+  const tabsOptions: Array<TabsOption> = [
+    { value: "Vector Logo", children: <h2>Vector Logo</h2> },
+    { value: "Create Logotype", children: <h2>Create Logotype</h2> },
   ];
 
   // Target frame options for dropdown
@@ -329,54 +301,52 @@ function Plugin() {
     })),
   ];
 
-  const faviconShapeOptions: Array<SegmentedControlOption> = [
-    { value: "square", children: "Square" },
-    { value: "circle", children: "Circle" },
-  ];
-
-  const hasAnyVectorSelection = Boolean(
-    selectionA || selectionB || selectionC || selectionD
+  // Reusable selection picker component
+  const SelectionPicker = ({
+    slot,
+    selection,
+    preview,
+    onClear,
+  }: {
+    slot: VariantSlot;
+    selection: SelectionInfo | null;
+    preview: string | null;
+    onClear: () => void;
+  }) => (
+    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+      <div
+        className="inner-card"
+        style={{
+          flexGrow: 1,
+          display: "flex",
+          alignItems: "center",
+          minHeight: "48px",
+        }}
+      >
+        {preview ? (
+          <div
+            className="has-img"
+            style={{
+              backgroundImage: `url('${preview}')`,
+              width: "100%",
+              height: "48px",
+            }}
+          ></div>
+        ) : (
+          <Text style={{ padding: "8px" }}>
+            <Muted>No graphic selected</Muted>
+          </Text>
+        )}
+      </div>
+      <Button
+        onClick={selection ? onClear : () => handleGrabSelection(slot)}
+        secondary={selection ? true : false}
+        style={{ whiteSpace: "nowrap" }}
+      >
+        {selection ? "Clear" : "Grab Selection"}
+      </Button>
+    </div>
   );
-
-  const tabsOptions: Array<TabsOption> = [
-    { value: "Select Vectors", children: <h2>Select Vectors</h2> },
-    { value: "Create Logotype", children: <h2>Create Logotype</h2> },
-  ];
-
-  const selectionRows = [
-    {
-      key: "A",
-      label: "Selection A",
-      selection: selectionA,
-      preview: previewA,
-      handleGrab: handleGrabSelectionA,
-      handleClear: handleClearSelectionA,
-    },
-    {
-      key: "B",
-      label: "Selection B",
-      selection: selectionB,
-      preview: previewB,
-      handleGrab: handleGrabSelectionB,
-      handleClear: handleClearSelectionB,
-    },
-    {
-      key: "C",
-      label: "Selection C",
-      selection: selectionC,
-      preview: previewC,
-      handleGrab: handleGrabSelectionC,
-      handleClear: handleClearSelectionC,
-    },
-    {
-      key: "D",
-      label: "Selection D",
-      selection: selectionD,
-      preview: previewD,
-      handleGrab: handleGrabSelectionD,
-      handleClear: handleClearSelectionD,
-    },
-  ];
 
   return (
     <Container space="medium">
@@ -388,7 +358,7 @@ function Plugin() {
       />
       <VerticalSpace space="medium" />
 
-      {activeTab === "Select Vectors" && (
+      {activeTab === "Vector Logo" && (
         <div>
           <Text>
             <Muted>Component set name (required)</Muted>
@@ -425,89 +395,15 @@ function Plugin() {
           />
           <VerticalSpace space="large" />
 
-          <div
-            style={{
-              display: "flex",
-              gap: "12px",
-              flexWrap: "wrap",
-            }}
-          >
-            {selectionRows.map((row) => {
-              const preview = row.preview;
-              const selection = row.selection;
-              return (
-                <div key={row.key} style={{ flexGrow: 1 }}>
-                  <Text>
-                    <Bold>{row.label}</Bold>
-                  </Text>
-                  <VerticalSpace space="small" />
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "8px",
-                      alignItems: "center",
-                      flexDirection: "column",
-                    }}
-                  >
-                    <div
-                      className={"inner-card"}
-                      style={{
-                        flexGrow: 1,
-                        width: "100%",
-                        display: "flex",
-                        alignItems: "center",
-                      }}
-                    >
-                      {preview ? (
-                        <div
-                          className={"has-img card-width"}
-                          style={{
-                            backgroundImage: `url('${preview}')`,
-                          }}
-                        ></div>
-                      ) : (
-                        <Text className={"card-width"}>
-                          <Muted className={"no-img"}>None selected</Muted>
-                        </Text>
-                      )}
-                    </div>
-                    <div className={"card-width"}>
-                      <Button
-                        onClick={selection ? row.handleClear : row.handleGrab}
-                        secondary={selection ? true : false}
-                        fullWidth
-                      >
-                        {selection ? "Clear Selection" : "Grab Selection"}
-                      </Button>
-                    </div>
-                  </div>
-                  <VerticalSpace space="medium" />
-                </div>
-              );
-            })}
-          </div>
-
-          <Text>
-            <h2>Variant Configuration</h2>
-          </Text>
-          <VerticalSpace space="medium" />
-
+          {/* Variant 1: 315x140 with Background */}
           <div className="card">
             <h3>315x140 with Background</h3>
             <VerticalSpace space="small" />
-            <Text>
-              <Muted>Source</Muted>
-            </Text>
-            <VerticalSpace space="extraSmall" />
-            <Dropdown
-              options={sourceOptions}
-              value={bgVariantSource}
-              onChange={(e) =>
-                setBgVariantSource(
-                  e.currentTarget.value as "A" | "B" | "C" | "D"
-                )
-              }
-              disabled={!hasAnyVectorSelection}
+            <SelectionPicker
+              slot="bg"
+              selection={bgSelection}
+              preview={bgPreview}
+              onClear={handleClearBg}
             />
             <VerticalSpace space="small" />
             <Text>
@@ -526,22 +422,15 @@ function Plugin() {
             />
           </div>
 
+          {/* Variant 2: 300x100 Light Mode */}
           <div className="card">
             <h3>300x100 Light Mode (no background)</h3>
             <VerticalSpace space="small" />
-            <Text>
-              <Muted>Source</Muted>
-            </Text>
-            <VerticalSpace space="extraSmall" />
-            <Dropdown
-              options={sourceOptions}
-              value={lightVariantSource}
-              onChange={(e) =>
-                setLightVariantSource(
-                  e.currentTarget.value as "A" | "B" | "C" | "D"
-                )
-              }
-              disabled={!hasAnyVectorSelection}
+            <SelectionPicker
+              slot="light"
+              selection={lightSelection}
+              preview={lightPreview}
+              onClear={handleClearLight}
             />
             <VerticalSpace space="small" />
             <Checkbox value={lightModeBlack} onValueChange={setLightModeBlack}>
@@ -549,22 +438,15 @@ function Plugin() {
             </Checkbox>
           </div>
 
+          {/* Variant 3: 300x100 Dark Mode */}
           <div className="card">
             <h3>300x100 Dark Mode (no background)</h3>
             <VerticalSpace space="small" />
-            <Text>
-              <Muted>Source</Muted>
-            </Text>
-            <VerticalSpace space="extraSmall" />
-            <Dropdown
-              options={sourceOptions}
-              value={darkVariantSource}
-              onChange={(e) =>
-                setDarkVariantSource(
-                  e.currentTarget.value as "A" | "B" | "C" | "D"
-                )
-              }
-              disabled={!hasAnyVectorSelection}
+            <SelectionPicker
+              slot="dark"
+              selection={darkSelection}
+              preview={darkPreview}
+              onClear={handleClearDark}
             />
             <VerticalSpace space="small" />
             <Checkbox value={darkModeWhite} onValueChange={setDarkModeWhite}>
@@ -572,22 +454,15 @@ function Plugin() {
             </Checkbox>
           </div>
 
+          {/* Variant 4: 100x100 Favicon */}
           <div className="card">
             <h3>100x100 Favicon</h3>
             <VerticalSpace space="small" />
-            <Text>
-              <Muted>Source</Muted>
-            </Text>
-            <VerticalSpace space="extraSmall" />
-            <Dropdown
-              options={sourceOptions}
-              value={faviconVariantSource}
-              onChange={(e) =>
-                setFaviconVariantSource(
-                  e.currentTarget.value as "A" | "B" | "C" | "D"
-                )
-              }
-              disabled={!hasAnyVectorSelection}
+            <SelectionPicker
+              slot="favicon"
+              selection={faviconSelection}
+              preview={faviconPreview}
+              onClear={handleClearFavicon}
             />
             <VerticalSpace space="small" />
             <Checkbox
@@ -632,6 +507,7 @@ function Plugin() {
               handleCreateComponentSet();
               window.scrollTo(0, 0);
             }}
+            disabled={!hasAllVectorSelections}
           >
             Create component set
           </Button>

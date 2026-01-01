@@ -18,30 +18,30 @@ export interface LogoConfig {
   productName: string;
   backgroundColor: string;
   backgroundOpacity: number; // 0..1
-  bgVariantSource: "A" | "B" | "C" | "D";
-  lightVariantSource: "A" | "B" | "C" | "D";
-  darkVariantSource: "A" | "B" | "C" | "D";
-  faviconVariantSource: "A" | "B" | "C" | "D";
   faviconHasBackground: boolean;
   faviconBackgroundShape: "square" | "circle";
   lightModeBlack: boolean;
   darkModeWhite: boolean;
-  selectionAId: string | null;
-  selectionBId: string | null;
-  selectionCId: string | null;
-  selectionDId: string | null;
+  // Direct selection IDs for each variant
+  bgSelectionId: string | null;
+  lightSelectionId: string | null;
+  darkSelectionId: string | null;
+  faviconSelectionId: string | null;
   targetFrameId: string | null; // Target frame for placement
 }
+
+// Slot types for variant selections
+export type VariantSlot = "bg" | "light" | "dark" | "favicon";
 
 // Event Handlers
 export interface GrabSelectionHandler extends EventHandler {
   name: "GRAB_SELECTION";
-  handler: (slot: "A" | "B" | "C" | "D") => void;
+  handler: (slot: VariantSlot) => void;
 }
 
 export interface SelectionUpdateHandler extends EventHandler {
   name: "SELECTION_UPDATE";
-  handler: (slot: "A" | "B" | "C" | "D", info: SelectionInfo | null) => void;
+  handler: (slot: VariantSlot, info: SelectionInfo | null) => void;
 }
 
 export interface CreateComponentSetHandler extends EventHandler {
@@ -86,10 +86,6 @@ export interface TopLevelFramesHandler extends EventHandler {
 
 // Settings to persist between sessions
 export interface PluginSettings {
-  bgVariantSource: "A" | "B" | "C" | "D";
-  lightVariantSource: "A" | "B" | "C" | "D";
-  darkVariantSource: "A" | "B" | "C" | "D";
-  faviconVariantSource: "A" | "B" | "C" | "D";
   lightModeBlack: boolean;
   darkModeWhite: boolean;
   faviconHasBackground: boolean;

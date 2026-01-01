@@ -23,14 +23,11 @@ import {
   SelectionUpdateHandler,
   TextLogoConfig,
   TopLevelFramesHandler,
+  VariantSlot,
 } from "./types";
 
 // Default settings
 const defaultSettings: PluginSettings = {
-  bgVariantSource: "A",
-  lightVariantSource: "A",
-  darkVariantSource: "A",
-  faviconVariantSource: "B",
   lightModeBlack: false,
   darkModeWhite: false,
   faviconHasBackground: false,
@@ -77,7 +74,7 @@ export default function () {
   // Handle grabbing selections
   on<GrabSelectionHandler>(
     "GRAB_SELECTION",
-    async function (slot: "A" | "B" | "C" | "D") {
+    async function (slot: VariantSlot) {
       const selection = figma.currentPage.selection;
 
       if (selection.length === 0) {
@@ -132,22 +129,14 @@ export default function () {
         }
 
         // Validate that required selections exist
-        const sourceIds = [
-          resolveSelectionId(config.bgVariantSource, config),
-          resolveSelectionId(config.lightVariantSource, config),
-          resolveSelectionId(config.darkVariantSource, config),
+        const requiredIds = [
+          config.bgSelectionId,
+          config.lightSelectionId,
+          config.darkSelectionId,
+          config.faviconSelectionId,
         ];
 
-        if (config.faviconHasBackground === false) {
-          // Favicon uses only the background element.
-          // We don't require a source selection.
-        } else {
-          sourceIds.push(
-            resolveSelectionId(config.faviconVariantSource, config)
-          );
-        }
-
-        for (const id of sourceIds) {
+        for (const id of requiredIds) {
           if (!id) {
             figma.notify("Some variants require a selection that is not set");
             return;
@@ -161,7 +150,7 @@ export default function () {
         const bgVariant = createVariant({
           width: 315,
           height: 140,
-          sourceId: resolveSelectionId(config.bgVariantSource, config)!,
+          sourceId: config.bgSelectionId!,
           backgroundColor: config.backgroundColor,
           backgroundOpacity: config.backgroundOpacity,
           backgroundShape: "square",
@@ -175,7 +164,7 @@ export default function () {
         const lightVariant = createVariant({
           width: 300,
           height: 100,
-          sourceId: resolveSelectionId(config.lightVariantSource, config)!,
+          sourceId: config.lightSelectionId!,
           backgroundColor: null,
           colorOverride: config.lightModeBlack ? hexToRgb("#000000") : null,
           variantName: `Product=${config.productName}, Size=300x100-Light-NoBg`,
@@ -187,7 +176,7 @@ export default function () {
         const darkVariant = createVariant({
           width: 300,
           height: 100,
-          sourceId: resolveSelectionId(config.darkVariantSource, config)!,
+          sourceId: config.darkSelectionId!,
           backgroundColor: null,
           colorOverride: config.darkModeWhite ? hexToRgb("#FFFFFF") : null,
           variantName: `Product=${config.productName}, Size=300x100-Dark-NoBg`,
@@ -200,7 +189,7 @@ export default function () {
           const faviconVariant = createVariant({
             width: 100,
             height: 100,
-            sourceId: resolveSelectionId(config.faviconVariantSource, config)!,
+            sourceId: config.faviconSelectionId!,
             backgroundColor: config.backgroundColor,
             backgroundOpacity: config.backgroundOpacity,
             backgroundShape: config.faviconBackgroundShape,
@@ -214,7 +203,7 @@ export default function () {
           const faviconVariant = createVariant({
             width: 100,
             height: 100,
-            sourceId: resolveSelectionId(config.faviconVariantSource, config)!,
+            sourceId: config.faviconSelectionId!,
             backgroundColor: null, // No background
             colorOverride: null,
             variantName: `Product=${config.productName}, Size=100x100-Favicon`,
@@ -372,30 +361,11 @@ export default function () {
 
 function hasAnySelection(config: LogoConfig): boolean {
   return Boolean(
-    config.selectionAId ||
-      config.selectionBId ||
-      config.selectionCId ||
-      config.selectionDId
+    config.bgSelectionId ||
+      config.lightSelectionId ||
+      config.darkSelectionId ||
+      config.faviconSelectionId
   );
-}
-
-function resolveSelectionId(
-  source: "A" | "B" | "C" | "D",
-  config: LogoConfig
-): string | null {
-  if (source === "A") {
-    return config.selectionAId;
-  }
-  if (source === "B") {
-    return config.selectionBId;
-  }
-  if (source === "C") {
-    return config.selectionCId;
-  }
-  if (source === "D") {
-    return config.selectionDId;
-  }
-  return null;
 }
 
 function clampOpacity(opacity: unknown): number {
