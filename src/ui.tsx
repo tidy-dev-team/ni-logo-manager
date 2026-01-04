@@ -562,7 +562,7 @@ function Plugin() {
           <VerticalSpace space="small" />
           <Textbox
             onValueInput={setFaviconText}
-            value={faviconText}
+            value={faviconText.slice(0, 2)}
             placeholder="T"
           />
           <VerticalSpace space="large" />
