@@ -500,7 +500,6 @@ function Plugin() {
             fullWidth
             onClick={() => {
               handleCreateComponentSet();
-              window.scrollTo(0, 0);
             }}
             disabled={!hasAllVectorSelections}
           >
