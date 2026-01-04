@@ -352,7 +352,7 @@ export default function () {
 
   showUI({
     width: 320,
-    height: 940,
+    height: 794,
   });
 
   // Send top-level frames after UI is shown

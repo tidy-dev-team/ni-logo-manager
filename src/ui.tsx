@@ -54,10 +54,12 @@ function Plugin() {
 
   // Selection state - one per variant
   const [bgSelection, setBgSelection] = useState<SelectionInfo | null>(null);
-  const [lightSelection, setLightSelection] =
-    useState<SelectionInfo | null>(null);
-  const [darkSelection, setDarkSelection] =
-    useState<SelectionInfo | null>(null);
+  const [lightSelection, setLightSelection] = useState<SelectionInfo | null>(
+    null
+  );
+  const [darkSelection, setDarkSelection] = useState<SelectionInfo | null>(
+    null
+  );
   const [faviconSelection, setFaviconSelection] =
     useState<SelectionInfo | null>(null);
 
@@ -74,8 +76,9 @@ function Plugin() {
   const [backgroundOpacity, setBackgroundOpacity] = useState<number>(1);
   const [faviconHasBackground, setFaviconHasBackground] =
     useState<boolean>(false);
-  const [faviconBackgroundShape, setFaviconBackgroundShape] =
-    useState<"square" | "circle">("square");
+  const [faviconBackgroundShape, setFaviconBackgroundShape] = useState<
+    "square" | "circle"
+  >("square");
   const [lightModeBlack, setLightModeBlack] = useState<boolean>(false);
   const [darkModeWhite, setDarkModeWhite] = useState<boolean>(false);
 
@@ -88,8 +91,9 @@ function Plugin() {
   const [textBackgroundOpacity, setTextBackgroundOpacity] = useState<number>(1);
   const [textFaviconHasBackground, setTextFaviconHasBackground] =
     useState<boolean>(true);
-  const [textFaviconBackgroundShape, setTextFaviconBackgroundShape] =
-    useState<"square" | "circle">("square");
+  const [textFaviconBackgroundShape, setTextFaviconBackgroundShape] = useState<
+    "square" | "circle"
+  >("square");
   const [textTextColor, setTextTextColor] = useState<string>("000000");
 
   // Listen for selection updates from main
@@ -349,14 +353,14 @@ function Plugin() {
   );
 
   return (
-    <Container space="medium">
-      <VerticalSpace space="medium" />
+    <Container space="small">
+      <VerticalSpace space="small" />
       <Tabs
         options={tabsOptions}
         value={activeTab}
         onValueChange={setActiveTab}
       />
-      <VerticalSpace space="medium" />
+      <VerticalSpace space="small" />
 
       {activeTab === "Vector Logo" && (
         <div>
@@ -393,19 +397,16 @@ function Plugin() {
             value={selectedFrameId}
             onChange={(e) => setSelectedFrameId(e.currentTarget.value)}
           />
-          <VerticalSpace space="large" />
+          <VerticalSpace space="extraSmall" />
 
-          {/* Variant 1: 315x140 with Background */}
           <div className="card">
             <h3>315x140 with Background</h3>
-            <VerticalSpace space="small" />
             <SelectionPicker
               slot="bg"
               selection={bgSelection}
               preview={bgPreview}
               onClear={handleClearBg}
             />
-            <VerticalSpace space="small" />
             <Text>
               <Muted>Background Color</Muted>
             </Text>
@@ -425,14 +426,12 @@ function Plugin() {
           {/* Variant 2: 300x100 Light Mode */}
           <div className="card">
             <h3>300x100 Light Mode (no background)</h3>
-            <VerticalSpace space="small" />
             <SelectionPicker
               slot="light"
               selection={lightSelection}
               preview={lightPreview}
               onClear={handleClearLight}
             />
-            <VerticalSpace space="small" />
             <Checkbox value={lightModeBlack} onValueChange={setLightModeBlack}>
               <Text>Make logo black</Text>
             </Checkbox>
@@ -441,14 +440,12 @@ function Plugin() {
           {/* Variant 3: 300x100 Dark Mode */}
           <div className="card">
             <h3>300x100 Dark Mode (no background)</h3>
-            <VerticalSpace space="small" />
             <SelectionPicker
               slot="dark"
               selection={darkSelection}
               preview={darkPreview}
               onClear={handleClearDark}
             />
-            <VerticalSpace space="small" />
             <Checkbox value={darkModeWhite} onValueChange={setDarkModeWhite}>
               <Text>Make logo white</Text>
             </Checkbox>
@@ -457,21 +454,19 @@ function Plugin() {
           {/* Variant 4: 100x100 Favicon */}
           <div className="card">
             <h3>100x100 Favicon</h3>
-            <VerticalSpace space="small" />
             <SelectionPicker
               slot="favicon"
               selection={faviconSelection}
               preview={faviconPreview}
               onClear={handleClearFavicon}
             />
-            <VerticalSpace space="small" />
             <Checkbox
               value={faviconHasBackground}
               onValueChange={setFaviconHasBackground}
             >
               <Text>Favicon has background</Text>
             </Checkbox>
-            <VerticalSpace space="small" />
+            <VerticalSpace space="extraSmall" />
             <div
               style={{
                 display: "flex",
@@ -511,7 +506,6 @@ function Plugin() {
           >
             Create component set
           </Button>
-          <VerticalSpace space="small" />
         </div>
       )}
 
@@ -643,13 +637,13 @@ function Plugin() {
           <Button
             style={{
               height: "32px",
+              marginTop: "12px",
             }}
             fullWidth
             onClick={handleCreateTextLogo}
           >
             Create component set
           </Button>
-          <VerticalSpace space="small" />
         </div>
       )}
     </Container>

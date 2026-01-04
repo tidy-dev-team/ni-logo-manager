@@ -1,17 +1,14 @@
 html, body {
-  scroll-behavior: smooth;
-  scroll-snap-type: y mandatory;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 body div:has(label) {
-  margin-bottom: 12px;
   gap: 4px;
 }
 
 label[class*="_tab_"] {
   padding: 0 !important;
-  padding-bottom: 12px !important;
+  padding-bottom: 6px !important;
   cursor: pointer !important;
 }
 
@@ -20,8 +17,14 @@ label[class*="_tab_"] div {
 }
 
 h2 {
-  margin-top: 20px;
-  margin-bottom: 12px;
+  margin-top: 12px;
+  margin-bottom: 6px;
+}
+
+h3 {
+  font-size: 11px;
+  margin-bottom: 6px;
+  font-weight: 600;
 }
 
 .card-width {
@@ -66,7 +69,7 @@ div[class*="_segmentedControl_"] {
 body div.card {
   border-radius: 6px;
   padding: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 6px;
   background-color: #f7f7f7;
   border: 1px solid #f1f1f1;
 }
@@ -93,7 +96,7 @@ div[class*="_dropdown_"] {
   max-width: 140px !important;
 }
 
-body:not(:has(.has-img)) .primary-btn {
+button.primary-btn:disabled {
   pointer-events: none;
   background-color: #ddd;
   color: #a3a3a3;
